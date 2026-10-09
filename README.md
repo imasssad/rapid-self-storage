@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rapid Self Storage
 
-## Getting Started
+Website for Rapid Self Storage, 1682 N J St, Tulare, CA. Next.js 16 (App Router) + TypeScript, built for Vercel.
 
-First, run the development server:
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
+npm run build      # production build check
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploy to Vercel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Push this folder to a GitHub repo.
+2. In Vercel: **Add New → Project**, import the repo. Framework preset is detected as Next.js; no build settings to change.
+3. (Optional, for the contact form) add these under **Settings → Environment Variables**, then redeploy:
+   - `RESEND_API_KEY` from https://resend.com (verify `rapidselfstorage.com` as a sending domain there)
+   - `CONTACT_TO_EMAIL` where messages go, comma-separate for several
+   - `CONTACT_FROM_EMAIL` e.g. `Rapid Self Storage <website@rapidselfstorage.com>`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   Without them the form still works on the page but tells visitors to call (559) 688-4787.
+4. Point the domain: **Settings → Domains → add `rapidselfstorage.com` and `www.rapidselfstorage.com`**, then set the DNS records Vercel shows at the registrar (an A record for the apex, a CNAME for www). Do this only when the client approves the switch from the SiteGround WordPress site.
 
-## Learn More
+## Editing content
 
-To learn more about Next.js, take a look at the following resources:
+All text, links, hours, unit sizes and locations are in `lib/site.ts`. Styles are in `app/globals.css`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## What's where
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Path | What |
+| --- | --- |
+| `app/page.tsx` | Page assembly and LocalBusiness (SelfStorage) structured data |
+| `components/` | One file per section; `UnitPicker.tsx`, `MobileMenu.tsx` and `ContactForm.tsx` are the only client components |
+| `app/api/contact/route.ts` | Sends contact form email through Resend, with a hidden spam trap |
+| `app/sitemap.ts`, `app/robots.ts` | SEO files |
+| `next.config.ts` | 308 redirects from the old WordPress URLs (`/about-us`, `/facilityfeatures`, `/contact`) |
 
-## Deploy on Vercel
+Payments and reservations stay on the existing Storedge and Quikstor portals; the site only links to them.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Before launch, confirm with the client
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Unit sizes: the old site only stated "5×5 to 20×20". 5×10, 10×15 and 10×20 are placeholders (`units` in `lib/site.ts`).
+- Free moving truck: mentioned for the company's locations generally; confirm it applies in Tulare.
+- Office hours (only gate hours are known), and whether to show prices.
+- Photos and the real logo (see below).
+
+## Photos
+
+The four photos are placeholders from Unsplash (free for commercial use under the Unsplash License):
+hero and door by Adam Winger, drive-up shot by Moj Box. They're set in `photos` in `lib/site.ts`.
+
+To swap in Eric's own photos: put the files in `public/photos/`, change each `src` to `/photos/<file>.jpg`,
+delete the `credit` lines, and remove the `images.remotePatterns` block from `next.config.ts`.
+
+## Design
+
+White and navy palette (`#0f1e3a` navy, `#1d5bff` blue for actions, `#f3f6fa` section tint), Schibsted Grotesk
+self-hosted through Fontsource. Colors are CSS variables at the top of `app/globals.css`.

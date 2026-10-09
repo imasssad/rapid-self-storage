@@ -2,13 +2,17 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { Highlights } from "@/components/Highlights";
 import { Units } from "@/components/Units";
+import { Steps } from "@/components/Steps";
 import { Features } from "@/components/Features";
+import { Marquee } from "@/components/Marquee";
 import { Security } from "@/components/Security";
 import { CtaBand } from "@/components/CtaBand";
 import { Story } from "@/components/Story";
 import { Locations } from "@/components/Locations";
+import { Faq } from "@/components/Faq";
 import { Contact } from "@/components/Contact";
 import { Footer } from "@/components/Footer";
+import { MobileCta } from "@/components/MobileCta";
 import { photos, site } from "@/lib/site";
 
 const jsonLd = {
@@ -49,14 +53,18 @@ export default function Home() {
         <Hero />
         <Highlights />
         <Units />
+        <Steps />
         <Features />
+        <Marquee />
         <Security />
         <Story />
         <Locations />
+        <Faq />
         <Contact />
         <CtaBand />
       </main>
       <Footer />
+      <MobileCta />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
     </>
   );

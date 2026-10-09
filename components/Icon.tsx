@@ -1,6 +1,6 @@
 import type { IconName } from "@/lib/site";
 
-type Name = IconName | "phone" | "mail" | "calendar" | "map" | "instagram" | "shield";
+type Name = IconName | "phone" | "mail" | "map" | "instagram" | "arrow" | "check";
 
 const paths: Record<Name, React.ReactNode> = {
   tag: (
@@ -78,6 +78,15 @@ const paths: Record<Name, React.ReactNode> = {
       <circle cx="17.5" cy="6.5" r="0.75" fill="currentColor" />
     </>
   ),
+  medal: (
+    <>
+      <circle cx="12" cy="15" r="5.5" />
+      <path d="M8.5 10.7 6 3h4l2 4.5L14 3h4l-2.5 7.7" />
+      <path d="m12 12.6.8 1.6 1.7.25-1.25 1.2.3 1.7-1.55-.8-1.55.8.3-1.7-1.25-1.2 1.7-.25Z" />
+    </>
+  ),
+  arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
+  check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   shield: (
     <>
       <path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6Z" />

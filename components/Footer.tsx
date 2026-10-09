@@ -1,4 +1,5 @@
 import { nav, site } from "@/lib/site";
+import { Icon } from "./Icon";
 import { Mark } from "./Mark";
 
 export function Footer() {
@@ -7,21 +8,30 @@ export function Footer() {
     <footer className="site-footer">
       <div className="wrap">
         <div className="foot-grid">
-          <div>
+          <div className="foot-brand">
             <a className="brand" href="#top">
               <Mark />
-              {site.name}
+              <span className="brand-text">
+                <span className="brand-name">{site.name}</span>
+                <span className="brand-sub">Tulare, California</span>
+              </span>
             </a>
             <p>Drive-up self storage in Tulare, CA. A Mid Valley Storage family facility.</p>
+            <a className="social" href={site.instagram.url} target="_blank" rel="noopener noreferrer">
+              <Icon name="instagram" className="icon-sm" />
+              {site.instagram.handle}
+            </a>
           </div>
           <div className="foot-col">
             <h3>Visit</h3>
             <address>
-              {site.address.street}
+              <a href={site.mapsUrl} target="_blank" rel="noopener noreferrer">
+                {site.address.street}
+                <br />
+                {site.address.city}, {site.address.region} {site.address.postalCode}
+              </a>
               <br />
-              {site.address.city}, {site.address.region} {site.address.postalCode}
-              <br />
-              {site.phoneDisplay}
+              <a href={site.phoneHref}>{site.phoneDisplay}</a>
             </address>
           </div>
           <div className="foot-col">
@@ -39,7 +49,7 @@ export function Footer() {
             <ul>
               <li><a href={site.payUrl}>Pay your bill</a></li>
               <li><a href={site.reserveUrl}>Reserve a unit</a></li>
-              <li><a href={site.instagram.url}>Instagram</a></li>
+              <li><a href={site.sisterLoginUrl}>Visalia locations login</a></li>
             </ul>
           </div>
         </div>

@@ -31,7 +31,9 @@ All text, links, hours, unit sizes and locations are in `lib/site.ts`. Styles ar
 | Path | What |
 | --- | --- |
 | `app/page.tsx` | Page assembly and LocalBusiness (SelfStorage) structured data |
-| `components/` | One file per section; `UnitPicker.tsx`, `MobileMenu.tsx` and `ContactForm.tsx` are the only client components |
+| `components/` | One file per section. Client components: `UnitPicker.tsx`, `MobileMenu.tsx`, `ContactForm.tsx` and `Motion.tsx` |
+| `components/Motion.tsx` | Scroll reveals (`data-reveal`), count-up numbers (`data-count`), header and mobile call-bar state, active nav link |
+| `app/employee/page.tsx` | The old site's staff schedule (Google Calendar embed). Not linked anywhere and marked `noindex` |
 | `app/api/contact/route.ts` | Sends contact form email through Resend, with a hidden spam trap |
 | `app/sitemap.ts`, `app/robots.ts` | SEO files |
 | `next.config.ts` | 308 redirects from the old WordPress URLs (`/about-us`, `/facilityfeatures`, `/contact`) |
@@ -48,12 +50,21 @@ Payments and reservations stay on the existing Storedge and Quikstor portals; th
 ## Photos
 
 The four photos are placeholders from Unsplash (free for commercial use under the Unsplash License):
-hero and door by Adam Winger, drive-up shot by Moj Box. They're set in `photos` in `lib/site.ts`.
+hero and door by Adam Winger, drive-up shot by Moj Box. They're set in `photos` in `lib/site.ts`, with a
+comment naming the matching photo on the old WordPress site (`/wp-content/uploads/...`).
 
-To swap in Eric's own photos: put the files in `public/photos/`, change each `src` to `/photos/<file>.jpg`,
-delete the `credit` lines, and remove the `images.remotePatterns` block from `next.config.ts`.
+To swap in the real photos: download them from the old site before the domain moves (don't hotlink, the
+WordPress server goes away at launch), put the files in `public/photos/`, change each `src` to
+`/photos/<file>.jpg`, delete the `credit` lines, and remove the `images.remotePatterns` block from `next.config.ts`.
+The real logo is `/wp-content/uploads/2020/06/RSSlogo.png`; it replaces `components/Mark.tsx` and `app/icon.svg`.
 
 ## Design
 
-White and navy palette (`#0f1e3a` navy, `#1d5bff` blue for actions, `#f3f6fa` section tint), Schibsted Grotesk
-self-hosted through Fontsource. Colors are CSS variables at the top of `app/globals.css`.
+White and navy palette (`#0b1a33` navy, `#1d5bff` blue for actions, `#f4f7fb` section tint), Schibsted Grotesk
+self-hosted through Fontsource. Colors, the fluid type scale, spacing, radii and shadows are CSS variables at the
+top of `app/globals.css`; sizes use `clamp()` so the layout scales smoothly from phones to wide screens.
+
+Motion: the hero animates in with plain CSS on first paint; sections below reveal as they scroll into view. An
+inline script in `app/layout.tsx` adds a `js` class before paint so content is only ever hidden when the reveal
+script can run (and it's un-hidden after 4s if the app bundle fails to load). Everything is static for visitors
+with "reduce motion" turned on.

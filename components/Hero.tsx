@@ -1,57 +1,74 @@
 import Image from "next/image";
-import { photos, site, specs } from "@/lib/site";
+import { highlights, photos, site, specs } from "@/lib/site";
+import { Icon } from "./Icon";
 
 export function Hero() {
-  const facts = specs.slice(0, 3);
   return (
     <section className="hero">
-      <div className="wrap hero-grid">
-        <div className="hero-copy">
-          <p className="kicker">Self storage in Tulare, California</p>
-          <h1>Drive up, unload and get on with your day.</h1>
-          <p className="lede">
-            Clean, secure ground-floor units from 5×5 to 20×20, a personal gate code for every tenant, and a friendly
-            team on site six days a week. Rent month to month with no deposit.
-          </p>
-          <div className="actions">
-            <a className="btn btn-blue" href={site.reserveUrl}>
-              Reserve a unit
-            </a>
-            <a className="btn btn-outline" href="#units">
-              Find your size
-            </a>
-          </div>
-          <dl className="facts">
-            {facts.map((f) => (
-              <div key={f.label}>
-                <dt>{f.label}</dt>
-                <dd>{f.value}</dd>
+      <div className="wrap">
+        <div className="hero-frame">
+          <Image src={photos.hero.src} alt={photos.hero.alt} fill preload sizes="(max-width: 1416px) 100vw, 1320px" />
+          <div className="hero-shade" aria-hidden="true" />
+          <div className="hero-inner">
+            <div className="hero-copy">
+              <p className="hero-pill">
+                <span className="hero-pill-check">
+                  <Icon name="check" className="icon-xs" />
+                </span>
+                {/* The old site's slider taglines, cycled with CSS. Screen readers get the plain list. */}
+                <span className="rotator" aria-hidden="true">
+                  {highlights.map((h) => (
+                    <span key={h.title}>{h.title}</span>
+                  ))}
+                </span>
+                <span className="sr-only">{highlights.map((h) => h.title).join(". ")}.</span>
+              </p>
+              <h1>
+                Drive up, unload and <span className="accent">get on with your day.</span>
+              </h1>
+              <p className="hero-lede">
+                {site.tagline} Clean ground-floor units from 5×5 to 20×20, a personal gate code for every tenant, and
+                friendly managers on site six days a week.
+              </p>
+              <div className="actions">
+                <a className="btn btn-blue btn-lg" href={site.reserveUrl}>
+                  Reserve a unit
+                  <Icon name="arrow" className="icon-arrow" />
+                </a>
+                <a className="btn btn-ghost-light btn-lg" href="#units">
+                  Find your size
+                </a>
               </div>
-            ))}
-          </dl>
+            </div>
+
+            <aside className="pay-card" aria-label="Customer login">
+              <p className="pay-card-title">
+                <span className="icon-chip icon-chip-glass">
+                  <Icon name="key" />
+                </span>
+                Already a tenant?
+              </p>
+              <p>Log in to pay online, set up auto-pay or manage your unit.</p>
+              <a className="btn btn-light" href={site.payUrl}>
+                Customer login &amp; pay
+                <Icon name="arrow" className="icon-arrow" />
+              </a>
+            </aside>
+          </div>
+          <span className="credit">Photo: {photos.hero.credit}</span>
         </div>
 
-        <div className="hero-media">
-          <div className="photo">
-            <Image
-              src={photos.hero.src}
-              alt={photos.hero.alt}
-              fill
-              priority
-              sizes="(max-width: 900px) 100vw, 620px"
-            />
-            <span className="credit">Photo: {photos.hero.credit}</span>
-          </div>
-          <div className="pay-panel">
-            <p>
-              <strong>Already a tenant?</strong>
-              Pay online or set up auto-pay in the customer portal.
-            </p>
-            <a className="btn btn-blue" href={site.payUrl}>
-              Pay your bill
-            </a>
-          </div>
-        </div>
+        <ul className="hero-facts" aria-label="At a glance">
+          {specs.map((s) => (
+            <li key={s.label}>
+              <span className="icon-chip">
+                <Icon name={s.icon} />
+              </span>
+              <span className="fact-label">{s.label}</span>
+              <strong>{s.value}</strong>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

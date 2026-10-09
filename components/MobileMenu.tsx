@@ -23,10 +23,12 @@ export function MobileMenu() {
 
   return (
     <details className="menu" ref={ref}>
-      <summary aria-label="Open menu">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-          <path d="M4 7h16M4 12h16M4 17h16" />
-        </svg>
+      <summary aria-label="Menu">
+        <span className="burger" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
       </summary>
       <div className="menu-panel">
         {nav.map((n) => (
@@ -34,7 +36,10 @@ export function MobileMenu() {
             {n.label}
           </a>
         ))}
+        <hr />
         <a href={site.payUrl}>Pay your bill</a>
+        <a href={site.sisterLoginUrl}>Visalia locations login</a>
+        <a href={site.phoneHref}>Call {site.phoneDisplay}</a>
       </div>
     </details>
   );

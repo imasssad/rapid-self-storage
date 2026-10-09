@@ -5,17 +5,27 @@ import { Icon } from "./Icon";
 export function Features() {
   return (
     <section className="section mist" id="features">
-      <div className="wrap split">
-        <div className="photo">
-          <Image src={photos.driveUp.src} alt={photos.driveUp.alt} fill sizes="(max-width: 900px) 100vw, 600px" />
-          <span className="credit">Photo: {photos.driveUp.credit}</span>
-        </div>
-        <div>
-          <p className="kicker">Facility features</p>
+      <div className="wrap">
+        <div className="section-head" data-reveal>
+          <p className="eyebrow">Facility features</p>
           <h2>Built for getting in and out.</h2>
-          <ul className="feature-list">
-            {features.map((f) => (
-              <li key={f.title}>
+          <p className="lede">
+            Whether you&apos;re storing holiday decorations in the off season or a whole house during a move, our goal
+            is to exceed your expectations with secure, convenient and spotlessly clean units.
+          </p>
+        </div>
+        <div className="bento">
+          <figure className="photo bento-photo" data-reveal="clip">
+            <Image src={photos.driveUp.src} alt={photos.driveUp.alt} fill sizes="(max-width: 1000px) 100vw, 440px" />
+            <figcaption className="photo-tag">
+              <Icon name="truck" className="icon-sm" />
+              Ground-floor, drive-up units
+            </figcaption>
+            <span className="credit">Photo: {photos.driveUp.credit}</span>
+          </figure>
+          <ul className="bento-cards">
+            {features.map((f, i) => (
+              <li key={f.title} className="card" data-reveal style={{ "--i": i } as React.CSSProperties}>
                 <span className="icon-chip">
                   <Icon name={f.icon} />
                 </span>

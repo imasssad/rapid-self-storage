@@ -7,12 +7,19 @@ import { createReadStream, promises as fs } from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { BlobNotFoundError, del, get, list, put } from "@vercel/blob";
+import type { UploadMode } from "./media";
 
 export type StoredFile = { stream: ReadableStream<Uint8Array>; contentType: string; size: number | null };
 export type ListedFile = { pathname: string; uploadedAt: Date };
 
 export function storageMode(): "blob" | "local" {
   return process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID ? "blob" : "local";
+}
+
+/** See UploadMode in lib/media.ts. */
+export function uploadMode(): UploadMode {
+  if (storageMode() === "local") return "local";
+  return process.env.BLOB_READ_WRITE_TOKEN ? "token" : "presigned";
 }
 
 const LOCAL_ROOT = path.join(process.cwd(), ".data");

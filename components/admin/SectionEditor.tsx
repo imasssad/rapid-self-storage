@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { saveSection } from "@/app/admin/actions";
 import { fieldErrors, sectionSchemas, type SectionKey } from "@/lib/content-schema";
+import type { UploadMode } from "@/lib/media";
 import { Fields } from "./fields";
 import { sectionConfigs } from "./sections";
 
@@ -16,7 +17,7 @@ function setAt(obj: unknown, path: (string | number)[], value: unknown): unknown
   return copy;
 }
 
-export function SectionEditor({ section, initial, storageMode }: { section: SectionKey; initial: unknown; storageMode: "blob" | "local" }) {
+export function SectionEditor({ section, initial, uploadMode }: { section: SectionKey; initial: unknown; uploadMode: UploadMode }) {
   const config = sectionConfigs[section];
   const [saved, setSaved] = useState(initial);
   const [value, setValue] = useState(initial);
@@ -72,7 +73,7 @@ export function SectionEditor({ section, initial, storageMode }: { section: Sect
         </div>
       )}
 
-      <Fields top fields={config.fields} value={value as Record<string, unknown>} path={[]} ctx={{ errors, onChange, storageMode }} />
+      <Fields top fields={config.fields} value={value as Record<string, unknown>} path={[]} ctx={{ errors, onChange, uploadMode }} />
 
       <div className="save-bar">
         <button type="submit" className="btn-admin primary" disabled={!dirty || status.kind === "saving"}>

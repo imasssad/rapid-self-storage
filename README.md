@@ -38,7 +38,7 @@ run `vercel env pull .env.local` (this brings down `BLOB_READ_WRITE_TOKEN`); be 
 
 | Variable | Purpose |
 | --- | --- |
-| `BLOB_READ_WRITE_TOKEN` | Added automatically when the Blob store is connected. Server reads and writes could use OIDC instead (`BLOB_STORE_ID`), but photo uploads (`handleUpload`) need this token, so keep it. |
+| `BLOB_READ_WRITE_TOKEN` or `BLOB_STORE_ID` | Added automatically when the Blob store is connected: the token, or (newer Vercel) `BLOB_STORE_ID` with Vercel OIDC. Either works for everything, photo uploads included. |
 | `SESSION_SECRET` | Random string, 32+ characters. Signs the admin login cookie; changing it signs everyone out. |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | First owner login only. Delete the password after the first sign-in. |
 | `RESEND_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_TO_EMAIL` | Contact form email. Recipients set in the admin panel (Settings) take priority over `CONTACT_TO_EMAIL`. |
@@ -82,8 +82,10 @@ footer year current; the specials bar additionally re-checks its dates in the br
 - Server Actions get Next's built-in Origin check; the upload route handler checks `Origin` itself.
 - Roles: `owner` can do everything; `editor` can't open Settings or People, and the server refuses those actions.
 
-**Uploads.** With a Blob store, the browser uploads straight to Blob using the client-upload flow
-(`app/api/admin/upload`, `handleUpload`, auth checked in `onBeforeGenerateToken`). In local mode the browser posts
+**Uploads.** With a Blob store, the browser uploads straight to Blob (`app/api/admin/upload`): with a client token
+(`handleUpload`) when `BLOB_READ_WRITE_TOKEN` is set, or with a presigned URL (`handleUploadPresigned` +
+`issueSignedToken`) when the store is connected through Vercel OIDC. Auth is checked before either is handed out.
+In local mode the browser posts
 the file to the same route, which checks it really is a JPEG, PNG or WebP. Limits: those three types, 8 MB. A
 replaced photo is deleted once no saved version uses it any more (so "Restore this version" never shows a broken image).
 

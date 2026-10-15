@@ -23,16 +23,22 @@ import {
   type Role,
   type StoredUser,
 } from "@/lib/auth";
-import { CONTENT_TAG, normalizeContent, readContent, readHistoryEntry, saveContent } from "@/lib/content";
-import { fieldErrors, isSectionKey, ownerOnlySections, sectionSchemas, type SiteContent } from "@/lib/content-schema";
+import { CONTENT_TAG, listHistory, normalizeContent, readContent, readHistoryEntry, readHistoryPair, saveContent } from "@/lib/content";
+import { fieldErrors, sectionSchemas, siteContentSchema, type SectionKey } from "@/lib/content-schema";
+import { changedPaths } from "@/lib/diff";
+import { getAt, isScreenKey, screens, setAt } from "@/lib/screens";
 import { BlobError } from "@vercel/blob";
 import bcrypt from "bcryptjs";
 
-export type ActionResult = { ok: true; message?: string } | { ok: false; error: string; fieldErrors?: Record<string, string> };
+/** `conflict`: someone else saved this part after it was opened (see saveScreen). */
+type Failure = { ok: false; error: string; fieldErrors?: Record<string, string>; conflict?: boolean };
+export type ActionResult = { ok: true; message?: string } | Failure;
+/** A saved screen returns the values as stored, so the editor shows exactly what the website now uses. */
+export type SaveResult = { ok: true; values: unknown[] } | Failure;
 
-const fail = (error: string, errors?: Record<string, string>): ActionResult => ({ ok: false, error, fieldErrors: errors });
+const fail = (error: string, errors?: Record<string, string>): Failure => ({ ok: false, error, fieldErrors: errors });
 
-async function guarded(fn: () => Promise<ActionResult>): Promise<ActionResult> {
+async function guarded<T extends ActionResult | SaveResult>(fn: () => Promise<T>): Promise<T | Failure> {
   try {
     return await fn();
   } catch (err) {
@@ -44,36 +50,37 @@ async function guarded(fn: () => Promise<ActionResult>): Promise<ActionResult> {
 
 // ---- Signing in and out ----
 
-export async function login(_prev: { error?: string } | undefined, formData: FormData): Promise<{ error?: string }> {
+export async function login(_prev: { error?: string; email?: string } | undefined, formData: FormData): Promise<{ error?: string; email?: string }> {
+  const typed = String(formData.get("email") ?? "").trim().slice(0, 254);
   const email = normalizeEmail(formData.get("email"));
   const password = String(formData.get("password") ?? "").slice(0, 200);
-  const generic = { error: "Email or password is incorrect." };
+  // Every error hands the typed email back, so the form keeps it.
+  const failed = (error: string) => ({ error, email: typed });
+  const generic = failed("Email or password is incorrect.");
   if (!email || !password) return generic;
 
   // Name a missing setup step (no Blob store, no SESSION_SECRET…) instead of a vague failure.
   const problem = signInSetupProblem();
-  if (problem) return { error: problem };
+  if (problem) return failed(problem);
 
   try {
     const locked = await lockoutMinutes(email);
-    if (locked) return { error: `Too many attempts. For your security, sign-in is paused for ${locked} minutes.` };
+    if (locked) return failed(`Too many attempts. For your security, sign-in is paused for ${locked} minutes.`);
 
     const user = await checkCredentials(email, password);
     if (!user) {
       const lockedNow = await recordFailure(email);
-      return lockedNow
-        ? { error: `Too many attempts. For your security, sign-in is paused for ${lockedNow} minutes.` }
-        : generic;
+      return lockedNow ? failed(`Too many attempts. For your security, sign-in is paused for ${lockedNow} minutes.`) : generic;
     }
     await clearFailures(email);
     await startSession(user);
   } catch (err) {
     console.error(err);
-    if (err instanceof SetupError) return { error: err.message };
+    if (err instanceof SetupError) return failed(err.message);
     if (err instanceof BlobError) {
-      return { error: `The Blob store refused the request (${err.message}). Check that it's a Private store connected to this project, then redeploy.` };
+      return failed(`The Blob store refused the request (${err.message}). Check that it's a Private store connected to this project, then redeploy.`);
     }
-    return { error: "Signing in isn't working right now. Try again in a minute." };
+    return failed("Signing in isn't working right now. Try again in a minute.");
   }
   redirect("/admin");
 }
@@ -85,28 +92,60 @@ export async function logout(): Promise<void> {
 
 // ---- Website text ----
 
-export async function saveSection(section: string, data: unknown): Promise<ActionResult> {
+const when = (iso: string) =>
+  new Date(iso).toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium", timeStyle: "short" });
+
+/**
+ * Saves one admin screen. A screen edits fixed parts of the content (lib/screens.ts), so the browser only sends
+ * the values for those parts, in order, and the server decides where they go. Everything else is kept as
+ * currently stored, so two people editing different screens never overwrite each other. `base` is what those
+ * parts held when the screen was opened: if someone else saved them since, the save stops and says so, unless
+ * `force` (the person chose to replace the other version).
+ */
+export async function saveScreen(screen: string, values: unknown[], base?: unknown[], force = false): Promise<SaveResult> {
   return guarded(async () => {
-    if (!isSectionKey(section)) return fail("That part of the website doesn't exist.");
-    const user = await requireUserFor(ownerOnlySections.includes(section) ? "owner" : "any");
+    if (!isScreenKey(screen)) return fail("That part of the website doesn't exist.");
+    const def = screens[screen];
+    const user = await requireUserFor(def.ownerOnly ? "owner" : "any");
+    if (!Array.isArray(values) || values.length !== def.scopes.length) return fail("Something went wrong and nothing was saved. Reload the page and try again.");
 
-    const parsed = sectionSchemas[section].safeParse(data);
-    if (!parsed.success) return fail("Some fields need attention.", fieldErrors(parsed.error));
+    const current = await readContent();
+    if (!force && Array.isArray(base) && JSON.stringify(def.scopes.map((p) => getAt(current, p))) !== JSON.stringify(base)) {
+      const [latest] = await listHistory();
+      const who = latest && latest.savedBy.email !== user.email ? latest.savedBy.name || latest.savedBy.email : "Someone";
+      return {
+        ok: false,
+        conflict: true,
+        error: `${who} saved changes to this part of the website${latest ? ` at ${when(latest.savedAt)}` : ""}, after you opened it. Saving now would replace their changes.`,
+      };
+    }
+    let next = def.scopes.reduce((c, path, i) => setAt(c, path, values[i]), current);
 
-    let value = parsed.data;
-    if (section === "photos") {
+    const touched = [...new Set(def.scopes.map((p) => p[0] as SectionKey))];
+    const errors: Record<string, string> = {};
+    for (const key of touched) {
+      const parsed = sectionSchemas[key].safeParse(next[key]);
+      if (!parsed.success) {
+        for (const [k, v] of Object.entries(fieldErrors(parsed.error))) errors[k ? `${key}.${k}` : key] = v;
+      } else {
+        next = { ...next, [key]: parsed.data };
+      }
+    }
+    if (Object.keys(errors).length) return fail("Some fields need attention.", errors);
+
+    if (touched.includes("photos")) {
       // An uploaded photo replaces a placeholder, so its "Photo: … on Unsplash" credit no longer applies.
-      const photos = { ...(value as SiteContent["photos"]) };
+      const photos = { ...next.photos };
       for (const k of Object.keys(photos) as (keyof typeof photos)[]) {
         if (photos[k].src.startsWith("/media/")) photos[k] = { ...photos[k], credit: "" };
       }
-      value = photos;
+      next = { ...next, photos };
     }
 
-    const current = await readContent();
-    await saveContent({ ...current, [section]: value }, { by: { email: user.email, name: user.name }, section });
+    if (!changedPaths(current, next).length) return { ok: true, values: def.scopes.map((p) => getAt(next, p)) };
+    await saveContent(next, { by: { email: user.email, name: user.name }, section: screen });
     updateTag(CONTENT_TAG);
-    return { ok: true };
+    return { ok: true, values: def.scopes.map((p) => getAt(next, p)) };
   });
 }
 
@@ -119,10 +158,35 @@ export async function restoreVersion(id: string): Promise<ActionResult> {
     // Editors can't change settings, so a restore by an editor keeps the current settings.
     const old = normalizeContent(entry.content); // fills in any fields added since that version was saved
     const restored = user.role === "owner" ? old : { ...old, settings: current.settings };
-    const when = new Date(entry.savedAt).toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium", timeStyle: "short" });
-    await saveContent(restored, { by: { email: user.email, name: user.name }, section: "restore", note: `Restored the version from ${when}` });
+    await saveContent(restored, { by: { email: user.email, name: user.name }, section: "restore", note: `Went back to the version from ${when(entry.savedAt)}` });
     updateTag(CONTENT_TAG);
-    return { ok: true, message: `Restored the version from ${when}. Your website is updated.` };
+    return { ok: true, message: `The website is back to how it was at ${when(entry.savedAt)}.` };
+  });
+}
+
+/**
+ * Undoes one save and nothing else: each field that save changed gets back the value it had just before it.
+ * Later changes to other fields stay. Saved as a new version, so it can be undone too.
+ */
+export async function undoChange(id: string): Promise<ActionResult> {
+  return guarded(async () => {
+    const user = await requireUserFor("any");
+    const pair = await readHistoryPair(id);
+    if (!pair) return fail("That version is no longer available.");
+    if (!pair.previous) return fail("This is the oldest version kept, so there's nothing earlier to go back to.");
+    const before = normalizeContent(pair.previous.content);
+    const after = normalizeContent(pair.entry.content);
+    const paths = changedPaths(before, after, 500).filter((p) => user.role === "owner" || p[0] !== "settings");
+    if (!paths.length) return fail("That save didn't change anything you can undo.");
+
+    const current = await readContent();
+    const next = paths.reduce((c, p) => setAt(c, p, getAt(before, p)), current);
+    if (!siteContentSchema.safeParse(next).success) {
+      return fail("This change can't be undone on its own, because the same part was changed again later. Use “Go back to this version” on an earlier save instead.");
+    }
+    await saveContent(next, { by: { email: user.email, name: user.name }, section: "restore", note: `Undid the change saved at ${when(pair.entry.savedAt)}` });
+    updateTag(CONTENT_TAG);
+    return { ok: true, message: `Undone. Those fields are back to how they were before ${when(pair.entry.savedAt)}.` };
   });
 }
 

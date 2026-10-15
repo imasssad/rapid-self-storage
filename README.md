@@ -1,7 +1,7 @@
 # Rapid Self Storage
 
 Website for Rapid Self Storage, 1682 N J St, Tulare, CA. Next.js 16 (App Router, Cache Components) + TypeScript,
-deployed on Vercel. The owner edits the content himself in a password-protected admin panel at `/admin`; content,
+deployed on Vercel. The owner edits the content themselves in a password-protected admin panel at `/admin`; content,
 admin users and uploaded photos live in a private Vercel Blob store.
 
 - **For the owner:** [ADMIN-GUIDE.md](ADMIN-GUIDE.md), how to use the admin panel.
@@ -41,7 +41,7 @@ run `vercel env pull .env.local` (this brings down `BLOB_READ_WRITE_TOKEN`); be 
 | `BLOB_READ_WRITE_TOKEN` or `BLOB_STORE_ID` | Added automatically when the Blob store is connected: the token, or (newer Vercel) `BLOB_STORE_ID` with Vercel OIDC. Either works for everything, photo uploads included. |
 | `SESSION_SECRET` | Random string, 32+ characters. Signs the admin login cookie; changing it signs everyone out. |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | First owner login only. Delete the password after the first sign-in. |
-| `RESEND_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_TO_EMAIL` | Contact form email. Recipients set in the admin panel (Settings) take priority over `CONTACT_TO_EMAIL`. |
+| `RESEND_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_TO_EMAIL` | Contact form email. Recipients set in the admin panel (Contact form emails) take priority over `CONTACT_TO_EMAIL`. |
 
 ## Architecture (developer notes)
 
@@ -80,20 +80,33 @@ footer year current; the specials bar additionally re-checks its dates in the br
   `auth/users.json` (`lib/auth.ts`) and checks the role and session version. Bumping the session version on a
   password change or reset signs that person out everywhere.
 - Server Actions get Next's built-in Origin check; the upload route handler checks `Origin` itself.
-- Roles: `owner` can do everything; `editor` can't open Settings or People, and the server refuses those actions.
+- Roles: `owner` can do everything; `editor` can't open Contact form emails or People, and the server refuses those actions.
+- The public page shows signed-in people an "Edit this part" bar. It reads a non-httpOnly hint cookie
+  (`lib/editor-hint.ts`) that `proxy.ts` sets next to a valid session; the hint grants nothing.
+
+**How the panel is organised.** `lib/screens.ts` defines one admin screen per part of the homepage, in page order,
+plus business details and tools. Each screen lists the content paths it edits ("scopes"), so a section's photo is
+edited on the same screen as its words. `saveScreen` writes only those paths onto the currently stored content, and
+refuses (unless the person confirms) if someone else saved them after the screen was opened. Field labels and help
+are in `components/admin/screen-fields.ts`. Each screen shows a live preview: `app/admin/preview` draws the real
+section components from the unsaved draft, sent over `postMessage` (`components/admin/PreviewFrame.tsx` and
+`PreviewCanvas.tsx`); the start screen uses the same frame as a clickable map of the homepage. Version history
+works out what each save changed (`lib/diff.ts`), which also powers "Undo this change".
 
 **Uploads.** With a Blob store, the browser uploads straight to Blob (`app/api/admin/upload`): with a client token
 (`handleUpload`) when `BLOB_READ_WRITE_TOKEN` is set, or with a presigned URL (`handleUploadPresigned` +
 `issueSignedToken`) when the store is connected through Vercel OIDC. Auth is checked before either is handed out.
 In local mode the browser posts
 the file to the same route, which checks it really is a JPEG, PNG or WebP. Limits: those three types, 8 MB. A
-replaced photo is deleted once no saved version uses it any more (so "Restore this version" never shows a broken image).
+replaced photo is deleted once no saved version uses it any more (so going back to a version never shows a broken image).
 
 ### Add a new editable field
 
 1. **Schema:** add it to the right section in `lib/content-schema.ts` (with a max length or other limits).
 2. **Default:** add its starting value in `lib/site.ts`. Existing saved content picks this up automatically.
-3. **Form:** describe it in `components/admin/sections.ts` (label, help text). Field kinds are rendered by `components/admin/fields.tsx`.
+3. **Form:** describe it in `components/admin/screen-fields.ts`, in the block of the screen that shows that part of
+   the page (label, help text). If it lives outside that screen's paths, add the path to the screen's `scopes` in
+   `lib/screens.ts`. Field kinds are rendered by `components/admin/fields.tsx`.
 4. **Component:** read it from props in the public component, passed down from `app/page.tsx`.
 
 Run `npm run build`; the types will point at anything you missed.
@@ -102,7 +115,7 @@ Run `npm run build`; the types will point at anything you missed.
 
 In Vercel, open **Storage**, then the Blob store, and download `content/site.json` (and the `media/` photos) from its file list.
 From a terminal with the token (`vercel env pull`), any script using `@vercel/blob`'s `get()` with
-`access: "private"` works too. The admin panel's Version history already keeps the last 20 saves.
+`access: "private"` works too. The admin panel's change history already keeps the last 20 saves.
 
 ## What's where
 
@@ -111,8 +124,8 @@ From a terminal with the token (`vercel env pull`), any script using `@vercel/bl
 | `app/page.tsx` | Home page: reads content, renders sections, builds the SelfStorage JSON-LD (office hours, prices as offers) |
 | `components/` | One file per public section; all take content as props |
 | `app/admin/` | Admin panel: `login/`, `(panel)/` screens, `actions.ts` (every Server Action), `admin.css` |
-| `components/admin/` | Admin UI: `sections.ts` (field labels per screen), `fields.tsx`, `SectionEditor.tsx`, `PhotoField.tsx`, people, history |
-| `lib/` | `content-schema.ts`, `content.ts`, `storage.ts`, `auth.ts`, `session-token.ts`, `media.ts`, `format.ts`, `site.ts` (defaults), `brand.ts`, `nav.ts` |
+| `components/admin/` | Admin UI: `screen-fields.ts` (fields per screen), `ScreenEditor.tsx`, `fields.tsx`, `PreviewFrame.tsx` / `PreviewCanvas.tsx` (live preview), `HomeMap.tsx`, `FindBox.tsx` (search), `Mentions.tsx`, `PhotoField.tsx`, people, history |
+| `lib/` | `content-schema.ts`, `screens.ts` (admin screens), `content.ts`, `diff.ts`, `storage.ts`, `auth.ts`, `session-token.ts`, `editor-hint.ts`, `media.ts`, `format.ts`, `site.ts` (defaults), `brand.ts`, `nav.ts` |
 | `proxy.ts` | Session check in front of `/admin` and `/api/admin` |
 | `app/media/[...path]/route.ts` | Serves uploaded photos from the private store |
 | `app/api/contact/route.ts` | Contact form email through Resend, with a hidden spam trap |
@@ -131,7 +144,7 @@ Payments and reservations stay on the existing Storedge and Quikstor portals; th
 ## Photos
 
 The four default photos are Unsplash placeholders (free for commercial use): hero and door by Adam Winger, drive-up
-shot by Moj Box. The owner replaces them in the admin panel (**Photos**); `lib/site.ts` notes which photo on the old
+shot by Moj Box. The owner replaces them in the admin panel (each section's screen, or **All photos**); `lib/site.ts` notes which photo on the old
 WordPress site belongs in each slot. Download those before the domain moves (the WordPress server goes away at
 launch, so don't hotlink). Once no default in `lib/site.ts` points at Unsplash, remove `images.unsplash.com` from
 `next.config.ts`. The real logo (`/wp-content/uploads/2020/06/RSSlogo.png`) replaces `components/Mark.tsx` and `app/icon.svg`.

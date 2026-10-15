@@ -1,6 +1,6 @@
 import type { IconName } from "@/lib/content-schema";
 
-type Name = IconName | "phone" | "mail" | "map" | "instagram" | "arrow" | "check" | "lock" | "eye" | "eyeOff" | "bolt" | "undo";
+type Name = IconName | "phone" | "mail" | "map" | "instagram" | "arrow" | "check" | "lock" | "eye" | "eyeOff" | "bolt" | "undo" | "pen";
 
 const paths: Record<Name, React.ReactNode> = {
   tag: (
@@ -106,6 +106,12 @@ const paths: Record<Name, React.ReactNode> = {
     </>
   ),
   bolt: <path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12Z" />,
+  pen: (
+    <>
+      <path d="M4 20h4L19.5 8.5a2.8 2.8 0 0 0-4-4L4 16Z" />
+      <path d="m13.5 6.5 4 4" />
+    </>
+  ),
   undo: (
     <>
       <path d="M9 14 4 9l5-5" />

@@ -146,6 +146,7 @@ export const defaultContent: SiteContent = {
         },
       ],
     },
+    showAmenities: true,
     // The old site's facility feature bullets, shown in the scrolling strip.
     amenities: [
       "Friendly, knowledgeable staff",

@@ -1,6 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { Contact } from "@/components/Contact";
 import { CtaBand } from "@/components/CtaBand";
+import { EditBar } from "@/components/EditBar";
 import { Faq } from "@/components/Faq";
 import { Features } from "@/components/Features";
 import { Footer } from "@/components/Footer";
@@ -84,7 +85,7 @@ export default async function Home() {
       <a className="skip" href="#top">
         Skip to content
       </a>
-      <SpecialsBar specials={c.specials} now={now} />
+      <SpecialsBar specials={c.specials} now={now} reserveUrl={c.contact.reserveUrl} />
       <Header contact={c.contact} />
       <main id="top">
         <Hero hero={home.hero} highlights={home.highlights} contact={c.contact} photo={photos.hero} />
@@ -92,7 +93,7 @@ export default async function Home() {
         <Units units={c.units} contact={c.contact} />
         <Steps steps={home.steps} contact={c.contact} />
         <Features features={home.features} photo={photos.driveUp} />
-        <Marquee items={home.amenities} />
+        {home.showAmenities && <Marquee items={home.amenities} />}
         <Security security={home.security} photo={photos.door} />
         <Story about={c.about} />
         <Locations locations={c.locations} />
@@ -103,6 +104,7 @@ export default async function Home() {
       </main>
       <Footer contact={c.contact} year={new Date(now).getFullYear()} />
       <MobileCta contact={c.contact} />
+      <EditBar />
       {/* Inside the page (not the root layout) so its effects run only after this page has hydrated. */}
       <Motion />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(c)).replace(/</g, "\\u003c") }} />

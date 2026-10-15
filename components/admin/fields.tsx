@@ -1,10 +1,11 @@
 "use client";
 
-// Renders a section's fields (see sections.ts) as a plain, labelled form.
-import { useState } from "react";
+// Renders a screen's fields (see screen-fields.ts) as a plain, labelled form. Field ids are the full content path
+// (f-home-hero-headline), so search results and task links can point straight at a field.
+import { useEffect, useState } from "react";
 import { DAYS } from "@/lib/format";
 import type { UploadMode } from "@/lib/media";
-import type { Field } from "./sections";
+import type { Field } from "./screen-fields";
 import { PhotoField } from "./PhotoField";
 
 type Path = (string | number)[];
@@ -12,6 +13,8 @@ type Ctx = {
   errors: Record<string, string>;
   onChange: (path: Path, value: unknown) => void;
   uploadMode: UploadMode;
+  /** The value at a path as last saved, to tell new from saved (for example a just-uploaded photo). */
+  savedAt?: (path: Path) => unknown;
 };
 
 const idFor = (path: Path) => `f-${path.join("-")}`;
@@ -37,8 +40,21 @@ function describedBy(id: string, help?: string, error?: string) {
   return [help && `${id}-help`, error && `${id}-error`].filter(Boolean).join(" ") || undefined;
 }
 
-const SHORT = new Set<Field["kind"]>(["number", "toggle", "date", "time", "select"]);
-const isBlock = (f: Field) => ["group", "list", "strings", "photo", "week"].includes(f.kind);
+const SHORT = new Set<Field["kind"]>(["number", "date", "time", "select"]);
+const isBlock = (f: Field) => ["group", "list", "strings", "photo", "week", "unitTable"].includes(f.kind);
+
+/** Browsers without CSS field-sizing: size the growing box to its text on every render. */
+function growFallback(el: HTMLTextAreaElement | null) {
+  if (!el || CSS.supports("field-sizing", "content")) return;
+  el.style.height = "auto";
+  el.style.height = `${el.scrollHeight + 2}px`;
+}
+
+/** "rapidselfstorage.com/x" → "https://rapidselfstorage.com/x", so a pasted address without https:// still works. */
+function withScheme(v: string): string {
+  const t = v.trim();
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(t) ? `https://${t}` : v;
+}
 
 /**
  * Renders fields on a two-column grid (short inputs share a row). At the top level of a screen, runs of plain
@@ -101,6 +117,19 @@ function FieldView({ field: f, value, path, ctx }: { field: Exclude<Field, { kin
           <Help id={`${id}-help`} text={f.help} />
           {f.multiline ? (
             <textarea id={id} value={String(value ?? "")} maxLength={f.max} rows={3} onChange={(e) => set(e.target.value)} {...aria} />
+          ) : f.max >= 60 && !f.inputType ? (
+            // A sentence-long line: a box that grows to show all of it (phones cut a one-line box off), where Enter doesn't add a line break.
+            <textarea
+              id={id}
+              className="grow"
+              ref={growFallback}
+              value={String(value ?? "")}
+              maxLength={f.max}
+              rows={1}
+              onChange={(e) => set(e.target.value.replace(/\s*\n\s*/g, " "))}
+              onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
+              {...aria}
+            />
           ) : (
             <input
               id={id}
@@ -109,6 +138,7 @@ function FieldView({ field: f, value, path, ctx }: { field: Exclude<Field, { kin
               maxLength={f.max}
               placeholder={f.placeholder}
               onChange={(e) => set(e.target.value)}
+              onBlur={f.inputType === "url" ? (e) => e.target.value !== withScheme(e.target.value) && set(withScheme(e.target.value)) : undefined}
               {...aria}
             />
           )}
@@ -192,6 +222,7 @@ function FieldView({ field: f, value, path, ctx }: { field: Exclude<Field, { kin
           onChange={set}
           errors={{ src: ctx.errors[`${keyOf(path)}.src`], alt: ctx.errors[`${keyOf(path)}.alt`] }}
           uploadMode={ctx.uploadMode}
+          savedSrc={(ctx.savedAt?.(path) as { src?: string } | undefined)?.src}
         />
       );
     case "week":
@@ -200,6 +231,8 @@ function FieldView({ field: f, value, path, ctx }: { field: Exclude<Field, { kin
       return <ListField field={f} value={(value as Record<string, unknown>[]) ?? []} path={path} ctx={ctx} />;
     case "strings":
       return <StringsField field={f} value={(value as string[]) ?? []} path={path} ctx={ctx} />;
+    case "unitTable":
+      return <UnitTable field={f} value={(value as UnitRow[]) ?? []} path={path} ctx={ctx} />;
   }
 }
 
@@ -259,6 +292,30 @@ function ItemTools({ index, count, what, onMove, onRemove }: { index: number; co
 function ListField({ field: f, value, path, ctx }: { field: Extract<Field, { kind: "list" }>; value: Record<string, unknown>[]; path: Path; ctx: Ctx }) {
   const error = ctx.errors[keyOf(path)];
   const full = f.max !== undefined && value.length >= f.max;
+  const keyFor = (item: Record<string, unknown>, i: number) => String(item.id ?? i);
+  // Long lists start folded, so the page shows every item's name at a glance. New items and items with a
+  // problem open by themselves.
+  const [opened, setOpened] = useState<Set<string>>(() => new Set());
+  const isOpen = (item: Record<string, unknown>, i: number) =>
+    !f.collapse || opened.has(keyFor(item, i)) || Object.keys(ctx.errors).some((k) => k.startsWith(`${keyOf([...path, i])}.`));
+  // A link to a field inside a folded item (from search or "Check text you typed elsewhere") opens that item.
+  useEffect(() => {
+    if (!f.collapse) return;
+    const prefix = `${idFor(path)}-`;
+    const hash = decodeURIComponent(location.hash.slice(1));
+    if (!hash.startsWith(prefix)) return;
+    const i = Number(hash.slice(prefix.length).split("-")[0]);
+    if (Number.isInteger(i) && value[i]) setOpened((prev) => new Set(prev).add(keyFor(value[i], i)));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- only on arrival
+
+  const toggle = (k: string) =>
+    setOpened((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+
   return (
     <div className="list" id={idFor(path)}>
       <div className="list-head">
@@ -267,31 +324,114 @@ function ListField({ field: f, value, path, ctx }: { field: Extract<Field, { kin
         <ErrorText id={`${idFor(path)}-error`} text={error} />
       </div>
       <ol className="list-items">
-        {value.map((item, i) => (
-          <li key={String(item.id ?? i)} className="list-item">
-            <div className="list-item-head">
-              <strong>{f.itemTitle(item, i)}</strong>
-              {!f.fixed && (
-                <ItemTools
-                  index={i}
-                  count={value.length}
-                  what={f.itemName}
-                  onMove={(to) => ctx.onChange(path, move(value, i, to))}
-                  onRemove={() => ctx.onChange(path, value.filter((_, j) => j !== i))}
-                />
+        {value.map((item, i) => {
+          const k = keyFor(item, i);
+          const open = isOpen(item, i);
+          const bodyId = `${idFor([...path, i])}-body`;
+          return (
+            <li key={k} className={open ? "list-item" : "list-item is-folded"}>
+              <div className="list-item-head">
+                {f.collapse ? (
+                  <button type="button" className="item-toggle" aria-expanded={open} aria-controls={bodyId} onClick={() => toggle(k)}>
+                    <span className="chev" aria-hidden="true" />
+                    <strong>{f.itemTitle(item, i)}</strong>
+                    <span className="item-toggle-hint">{open ? "Close" : "Edit"}</span>
+                  </button>
+                ) : (
+                  <strong>{f.itemTitle(item, i)}</strong>
+                )}
+                {!f.fixed && (
+                  <ItemTools
+                    index={i}
+                    count={value.length}
+                    what={f.itemName}
+                    onMove={(to) => ctx.onChange(path, move(value, i, to))}
+                    onRemove={() => ctx.onChange(path, value.filter((_, j) => j !== i))}
+                  />
+                )}
+              </div>
+              {open && (
+                <div className="list-item-body" id={bodyId}>
+                  <Fields fields={f.fields} value={item} path={[...path, i]} ctx={ctx} />
+                </div>
               )}
-            </div>
-            <div className="list-item-body">
-              <Fields fields={f.fields} value={item} path={[...path, i]} ctx={ctx} />
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ol>
       {!f.fixed && f.newItem && (
-        <button type="button" className="btn-admin secondary" disabled={full} onClick={() => ctx.onChange(path, [...value, f.newItem!()])}>
-          + Add a {f.itemName}
+        <button
+          type="button"
+          className="btn-admin secondary"
+          disabled={full}
+          onClick={() => {
+            const item = f.newItem!();
+            setOpened((prev) => new Set(prev).add(keyFor(item, value.length)));
+            ctx.onChange(path, [...value, item]);
+          }}
+        >
+          + Add {/^[aeiou]/.test(f.itemName) ? "an" : "a"} {f.itemName}
         </button>
       )}
+    </div>
+  );
+}
+
+// ---- Prices at a glance (unit sizes) ----
+
+type UnitRow = { id: string; width: number; depth: number; name: string; price: number | null; soldOut: boolean };
+
+function UnitTable({ field: f, value, path, ctx }: { field: Extract<Field, { kind: "unitTable" }>; value: UnitRow[]; path: Path; ctx: Ctx }) {
+  const set = (i: number, patch: Partial<UnitRow>) => ctx.onChange(path, value.map((u, j) => (j === i ? { ...u, ...patch } : u)));
+  return (
+    <div className="unit-table-wrap" id={`${idFor(path)}-table`}>
+      {f.help && <p className="help">{f.help}</p>}
+      <table className="unit-table">
+        <thead>
+          <tr>
+            <th scope="col">Size</th>
+            <th scope="col">Monthly price</th>
+            <th scope="col">Sold out</th>
+          </tr>
+        </thead>
+        <tbody>
+          {value.map((u, i) => {
+            const size = `${u.width}×${u.depth}${u.name ? ` ${u.name}` : ""}`;
+            const priceId = `${idFor([...path, i, "price"])}-quick`;
+            const err = ctx.errors[keyOf([...path, i, "price"])];
+            return (
+              <tr key={u.id} className={u.soldOut ? "is-sold-out" : undefined}>
+                <th scope="row">{size}</th>
+                <td>
+                  <div className="input-row">
+                    <span className="adorn">$</span>
+                    <input
+                      id={priceId}
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      step={1}
+                      className="input-number"
+                      placeholder="Call"
+                      value={u.price === null || Number.isNaN(u.price) ? "" : String(u.price)}
+                      onChange={(e) => set(i, { price: e.target.value === "" ? null : Number(e.target.value) })}
+                      aria-label={`${size}: monthly price in dollars`}
+                      aria-invalid={err ? true : undefined}
+                    />
+                  </div>
+                  {err && <p className="field-error">{err}</p>}
+                </td>
+                <td>
+                  <label className="toggle">
+                    <input type="checkbox" role="switch" checked={u.soldOut} onChange={(e) => set(i, { soldOut: e.target.checked })} aria-label={`${size}: sold out`} />
+                    <span className="toggle-track" aria-hidden="true" />
+                  </label>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -370,13 +510,21 @@ function WeekField({ id, label, help, value, path, ctx }: { id: string; label: s
                     <span className="toggle-track" aria-hidden="true" />
                   </label>
                 </td>
-                <td>
-                  <input type="time" value={d.opens} disabled={!d.open} onChange={(e) => setDay(i, { opens: e.target.value })} aria-label={`${DAYS[i]} opens`} />
-                </td>
-                <td>
-                  <input type="time" value={d.closes} disabled={!d.open} onChange={(e) => setDay(i, { closes: e.target.value })} aria-label={`${DAYS[i]} closes`} aria-invalid={err ? true : undefined} />
-                  {err && <p className="field-error">{err}</p>}
-                </td>
+                {d.open ? (
+                  <>
+                    <td>
+                      <input type="time" value={d.opens} onChange={(e) => setDay(i, { opens: e.target.value })} aria-label={`${DAYS[i]} opens`} />
+                    </td>
+                    <td>
+                      <input type="time" value={d.closes} onChange={(e) => setDay(i, { closes: e.target.value })} aria-label={`${DAYS[i]} closes`} aria-invalid={err ? true : undefined} />
+                      {err && <p className="field-error">{err}</p>}
+                    </td>
+                  </>
+                ) : (
+                  <td colSpan={2} className="closed">
+                    Closed
+                  </td>
+                )}
               </tr>
             );
           })}

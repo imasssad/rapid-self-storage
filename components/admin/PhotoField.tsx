@@ -13,6 +13,8 @@ type Props = {
   onChange: (v: Photo) => void;
   errors: { src?: string; alt?: string };
   uploadMode: UploadMode;
+  /** The photo as last saved; when it differs, this one is new and not saved yet. */
+  savedSrc?: string;
 };
 
 async function uploadPhoto(file: File, mode: UploadMode): Promise<string> {
@@ -40,13 +42,14 @@ async function uploadPhoto(file: File, mode: UploadMode): Promise<string> {
   return `/${json.pathname}`;
 }
 
-export function PhotoField({ id, label, help, value, onChange, errors, uploadMode }: Props) {
+export function PhotoField({ id, label, help, value, onChange, errors, uploadMode, savedSrc }: Props) {
   const input = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  // The just-uploaded file, shown from this computer so it appears instantly.
+  const [preview, setPreview] = useState<{ src: string; url: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
 
-  useEffect(() => () => void (preview && URL.revokeObjectURL(preview)), [preview]);
+  useEffect(() => () => void (preview && URL.revokeObjectURL(preview.url)), [preview]);
 
   async function onFile(file: File | undefined) {
     if (!file) return;
@@ -54,7 +57,7 @@ export function PhotoField({ id, label, help, value, onChange, errors, uploadMod
     setBusy(true);
     try {
       const src = await uploadPhoto(file, uploadMode);
-      setPreview(URL.createObjectURL(file));
+      setPreview({ src, url: URL.createObjectURL(file) });
       // A new upload replaces the placeholder, so the Unsplash credit goes away.
       onChange({ ...value, src, credit: "" });
     } catch (err) {
@@ -65,7 +68,8 @@ export function PhotoField({ id, label, help, value, onChange, errors, uploadMod
     }
   }
 
-  const shown = preview ?? value.src;
+  const shown = preview?.src === value.src ? preview.url : value.src;
+  const unsaved = savedSrc !== undefined && savedSrc !== value.src;
   return (
     <fieldset className="group photo-field" id={id}>
       <legend>{label}</legend>
@@ -74,7 +78,7 @@ export function PhotoField({ id, label, help, value, onChange, errors, uploadMod
         <div className="photo-preview">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={shown} alt="" />
-          {preview && <span className="photo-badge">New, not saved yet</span>}
+          {unsaved && <span className="photo-badge">New, not saved yet</span>}
         </div>
         <div className="photo-controls">
           <input

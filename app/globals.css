@@ -594,6 +594,18 @@ html[data-scrolled] .bar { padding-block: 0.6rem; }
 /* Mobile call/reserve bar */
 .mobile-cta { display: none; }
 
+/* "Edit this part" bar, only for people signed in to the website editor (components/EditBar.tsx) */
+.edit-bar {
+  position: fixed; left: 16px; bottom: 16px; z-index: 60; display: flex; align-items: stretch; max-width: calc(100vw - 32px);
+  border-radius: 999px; background: var(--ink); color: #fff; box-shadow: 0 18px 40px -16px rgba(11, 26, 51, 0.6); font-size: 0.9rem;
+}
+.edit-bar a { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1rem; color: inherit; text-decoration: none; }
+.edit-bar-main { min-width: 0; border-radius: 999px 0 0 999px; }
+.edit-bar-main span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.edit-bar-home { border-left: 1px solid rgba(255, 255, 255, 0.2); border-radius: 0 999px 999px 0; color: rgba(255, 255, 255, 0.75) !important; }
+.edit-bar a:hover { background: rgba(255, 255, 255, 0.1); }
+.edit-bar .icon-xs { color: var(--sky); flex: none; }
+
 .skip { position: absolute; left: -9999px; top: 0; z-index: 60; padding: 0.6rem 1rem; background: var(--blue); color: #fff; font-weight: 600; border-radius: var(--radius-sm); }
 .skip:focus { left: 16px; top: 8px; }
 
@@ -726,5 +738,6 @@ html[data-scrolled] .bar { padding-block: 0.6rem; }
     transition: transform 0.45s var(--ease-out), visibility 0s 0.45s;
   }
   html[data-past-hero] .mobile-cta { transform: none; visibility: visible; transition: transform 0.45s var(--ease-out); }
+  html[data-past-hero] .edit-bar { bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px)); }
   .site-footer { padding-bottom: calc(2rem + 4.75rem); }
 }

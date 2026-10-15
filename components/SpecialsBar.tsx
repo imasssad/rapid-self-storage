@@ -6,10 +6,13 @@ import { Icon } from "./Icon";
 // The inline script re-checks the dates against the visitor's clock before the bar is painted.
 const recheck = `(function(){var e=document.getElementById("specials-bar");if(!e)return;var n=Date.now(),f=Number(e.getAttribute("data-from")),u=Number(e.getAttribute("data-until"));e.hidden=!(n>=f&&n<u)})()`;
 
-export function SpecialsBar({ specials, now }: { specials: Specials; now: number }) {
-  if (!specials.enabled || !specials.headline) return null;
+/** `preview` (admin panel) draws the bar even when it's switched off or out of its dates, without the script. */
+/** A button with a label but no link of its own goes to the "Reserve a unit" page. */
+export function SpecialsBar({ specials, now, reserveUrl, preview = false }: { specials: Specials; now: number; reserveUrl: string; preview?: boolean }) {
+  if (!specials.headline) return null;
+  if (!preview && !specials.enabled) return null;
   const { from, until } = specialsWindow(specials);
-  if (until <= now) return null; // already over; nothing to re-check
+  if (!preview && until <= now) return null; // already over; nothing to re-check
   return (
     <>
       <aside
@@ -18,7 +21,7 @@ export function SpecialsBar({ specials, now }: { specials: Specials; now: number
         aria-label="Current special"
         data-from={Number.isFinite(from) ? from : -8.64e15}
         data-until={Number.isFinite(until) ? until : 8.64e15}
-        hidden={!specialsActive(specials, now)}
+        hidden={!preview && !specialsActive(specials, now)}
         suppressHydrationWarning
       >
         <div className="wrap specials-inner">
@@ -30,15 +33,15 @@ export function SpecialsBar({ specials, now }: { specials: Specials; now: number
             <strong>{specials.headline}</strong>
             {specials.text && <span> {specials.text}</span>}
           </p>
-          {specials.buttonLabel && specials.buttonUrl && (
-            <a className="specials-link" href={specials.buttonUrl}>
+          {specials.buttonLabel && (specials.buttonUrl || reserveUrl) && (
+            <a className="specials-link" href={specials.buttonUrl || reserveUrl}>
               {specials.buttonLabel}
               <Icon name="arrow" className="icon-xs" />
             </a>
           )}
         </div>
       </aside>
-      <script dangerouslySetInnerHTML={{ __html: recheck }} />
+      {!preview && <script dangerouslySetInnerHTML={{ __html: recheck }} />}
     </>
   );
 }

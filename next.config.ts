@@ -16,6 +16,9 @@ const nextConfig: NextConfig = {
       { source: "/about-us", destination: "/#story", permanent: true },
       { source: "/facilityfeatures", destination: "/#features", permanent: true },
       { source: "/contact", destination: "/#visit", permanent: true },
+      // Admin screens from before the panel followed the page (bookmarks, old links in the guide).
+      { source: "/admin/home", destination: "/admin/hero", permanent: false },
+      { source: "/admin/about", destination: "/admin/story", permanent: false },
     ];
   },
 };

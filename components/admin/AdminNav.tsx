@@ -6,20 +6,27 @@ import { usePathname } from "next/navigation";
 import { logout } from "@/app/admin/actions";
 
 export type NavItem = { href: string; label: string };
+export type NavGroup = { label: string; numbered?: boolean; items: NavItem[] };
 
-export function AdminNav({ items, user }: { items: NavItem[]; user: { name: string; role: string } }) {
+export function AdminNav({ groups, user }: { groups: NavGroup[]; user: { name: string; role: string } }) {
   const pathname = usePathname();
-  const links = (
-    <ul>
-      {items.map((item) => (
-        <li key={item.href}>
-          <a href={item.href} aria-current={pathname === item.href ? "page" : undefined}>
-            {item.label}
-          </a>
-        </li>
-      ))}
-    </ul>
-  );
+  const links = groups.map((g, gi) => {
+    const List = g.numbered ? "ol" : "ul";
+    return (
+      <div key={gi} className="nav-group">
+        {g.label && <p className="nav-label">{g.label}</p>}
+        <List className={g.numbered ? "numbered" : undefined}>
+          {g.items.map((item) => (
+            <li key={item.href}>
+              <a href={item.href} aria-current={pathname === item.href ? "page" : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </List>
+      </div>
+    );
+  });
   return (
     <>
       <nav className="admin-nav" aria-label="Admin">

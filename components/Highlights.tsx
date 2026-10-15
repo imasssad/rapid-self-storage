@@ -7,7 +7,7 @@ const icons: IconName[] = ["tag", "key", "people", "camera"];
 
 export function Highlights({ why, highlights }: Props) {
   return (
-    <section className="section why" aria-labelledby="why-title">
+    <section className="section why" id="why" aria-labelledby="why-title">
       <div className="wrap why-grid">
         <div className="why-copy" data-reveal>
           <p className="eyebrow">Why Rapid Self Storage</p>

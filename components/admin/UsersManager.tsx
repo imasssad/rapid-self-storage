@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { addUser, removeUser, resetUserPassword, type ActionResult } from "@/app/admin/actions";
 
 type Person = { email: string; name: string; role: "owner" | "editor" };
@@ -14,10 +14,39 @@ function suggestPassword() {
 }
 
 function Notice({ result }: { result: ActionResult | null }) {
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => box.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), [result]);
   if (!result) return null;
   return (
-    <div className={result.ok ? "notice ok" : "notice error"} role="status">
+    <div ref={box} className={result.ok ? "notice ok" : "notice error"} role="status">
       {result.ok ? result.message : result.error}
+    </div>
+  );
+}
+
+/** Shown after adding someone: everything they need to sign in, ready to pass on. */
+function Handover({ person, onDone }: { person: { name: string; email: string; password: string }; onDone: () => void }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
+  const address = typeof location === "undefined" ? "/admin/login" : `${location.origin}/admin/login`;
+  const text = `Sign in to edit the website at ${address}\nEmail: ${person.email}\nTemporary password: ${person.password}\nPlease change it under Your account after signing in.`;
+  useEffect(() => box.current?.scrollIntoView({ block: "center", behavior: "smooth" }), []);
+  return (
+    <div ref={box} className="notice ok handover" role="status">
+      <p>{person.name} can now sign in. Give them these details (the password isn&apos;t shown again):</p>
+      <pre>{text}</pre>
+      <p className="notice-actions">
+        <button
+          type="button"
+          className="btn-admin secondary"
+          onClick={() => navigator.clipboard?.writeText(text).then(() => setCopied(true), () => setCopied(false))}
+        >
+          {copied ? "Copied" : "Copy these details"}
+        </button>
+        <button type="button" className="link-btn" onClick={onDone}>
+          Done
+        </button>
+      </p>
     </div>
   );
 }
@@ -31,6 +60,7 @@ export function UsersManager({ people, me }: { people: Person[]; me: string }) {
   const [resetFor, setResetFor] = useState<string | null>(null);
   const [resetPw, setResetPw] = useState("");
   const [removing, setRemoving] = useState<string | null>(null);
+  const [added, setAdded] = useState<{ name: string; email: string; password: string } | null>(null);
   const owners = people.filter((p) => p.role === "owner").length;
 
   async function run(fn: () => Promise<ActionResult>) {
@@ -44,9 +74,15 @@ export function UsersManager({ people, me }: { people: Person[]; me: string }) {
 
   async function onAdd(e: React.FormEvent) {
     e.preventDefault();
-    const res = await run(() => addUser(form));
+    setBusy(true);
+    const res = await addUser(form);
+    setBusy(false);
     setErrors(!res.ok && res.fieldErrors ? res.fieldErrors : {});
-    if (res.ok) setForm({ name: "", email: "", role: "editor", password: "" });
+    if (!res.ok) return setResult(res);
+    setResult(null);
+    setAdded({ name: form.name.trim(), email: form.email.trim().toLowerCase(), password: form.password });
+    setForm({ name: "", email: "", role: "editor", password: "" });
+    router.refresh();
   }
 
   return (
@@ -112,6 +148,7 @@ export function UsersManager({ people, me }: { people: Person[]; me: string }) {
         ))}
       </ul>
 
+      {added && <Handover person={added} onDone={() => setAdded(null)} />}
       <form className="group add-person" onSubmit={onAdd} noValidate>
         <h2>Add a person</h2>
         <p className="help">They sign in at this same address with their email and the temporary password you give them, then change it under Your account.</p>
@@ -134,13 +171,23 @@ export function UsersManager({ people, me }: { people: Person[]; me: string }) {
             {errors[key] && <p className="field-error">{errors[key]}</p>}
           </div>
         ))}
-        <div className="field">
-          <label htmlFor="new-role">What can they do?</label>
-          <select id="new-role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-            <option value="editor">Editor: change website text, prices and photos</option>
-            <option value="owner">Owner: everything, including people and settings</option>
-          </select>
-        </div>
+        <fieldset className="field role-choice">
+          <legend>What can they do?</legend>
+          {(
+            [
+              ["editor", "Editor", "Can change everything on the website: text, prices, specials, photos, hours, phone and button links. Can't add people or change where contact form emails go."],
+              ["owner", "Owner", "Everything an editor can do, plus adding and removing people and choosing where contact form emails go."],
+            ] as const
+          ).map(([value, title, text]) => (
+            <label key={value} className="role-card">
+              <input type="radio" name="new-role" value={value} checked={form.role === value} onChange={() => setForm({ ...form, role: value })} />
+              <span>
+                <strong>{title}</strong>
+                <span>{text}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
         <div className="field">
           <label htmlFor="new-password">Temporary password</label>
           <p className="help">At least 10 characters.</p>

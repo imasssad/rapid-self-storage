@@ -56,9 +56,6 @@ export const specialsSchema = z
     if (s.enabled && !s.headline) {
       ctx.addIssue({ code: "custom", path: ["headline"], message: "Add a headline before switching the special on." });
     }
-    if (s.buttonLabel && !s.buttonUrl) {
-      ctx.addIssue({ code: "custom", path: ["buttonUrl"], message: "Add the button's link, or clear the button label." });
-    }
     if (s.startDate && s.endDate && s.endDate < s.startDate) {
       ctx.addIssue({ code: "custom", path: ["endDate"], message: "The end date is before the start date." });
     }
@@ -132,6 +129,8 @@ export const homeSchema = z.object({
       .max(9),
   }),
   amenities: z.array(required(50)).max(20),
+  /** Off hides the scrolling strip but keeps its phrases. */
+  showAmenities: z.boolean(),
   security: z.object({
     heading: required(120),
     text: required(500),
@@ -221,7 +220,7 @@ export const sectionSchemas = {
 
 export type SectionKey = keyof typeof sectionSchemas;
 export const sectionKeys = Object.keys(sectionSchemas) as SectionKey[];
-export const isSectionKey = (v: string): v is SectionKey => v in sectionSchemas;
+export const isSectionKey = (v: string): v is SectionKey => Object.hasOwn(sectionSchemas, v);
 /** Sections only an owner may change. */
 export const ownerOnlySections: SectionKey[] = ["settings"];
 

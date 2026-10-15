@@ -44,7 +44,7 @@ function describedBy(id: string, help?: string, error?: string) {
 const SHORT = new Set<Field["kind"]>(["number", "date", "time", "select"]);
 const isBlock = (f: Field) => ["group", "list", "strings", "photo", "logo", "week", "unitTable", "button"].includes(f.kind);
 
-/** Browsers without CSS field-sizing: size the growing box to its text on every render. */
+/** Browsers without CSS field-sizing: size the growing box to its text (called after every render). */
 function growFallback(el: HTMLTextAreaElement | null) {
   if (!el || CSS.supports("field-sizing", "content")) return;
   el.style.height = "auto";
@@ -138,12 +138,21 @@ function FieldView({ field: f, value, path, ctx }: { field: Exclude<Field, { kin
             <textarea
               id={id}
               className="grow"
-              ref={growFallback}
+              ref={(el) => growFallback(el)}
               value={String(value ?? "")}
               maxLength={f.max}
               rows={1}
               onChange={(e) => set(e.target.value.replace(/\s*\n\s*/g, " "))}
               onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
+              onPaste={(e) => {
+                // Turn pasted line breaks into spaces where the text lands, so the cursor stays put.
+                const pasted = e.clipboardData.getData("text");
+                if (!/[\r\n]/.test(pasted)) return;
+                e.preventDefault();
+                const el = e.currentTarget;
+                el.setRangeText(pasted.replace(/\s*[\r\n]+\s*/g, " "), el.selectionStart, el.selectionEnd, "end");
+                set(el.value.slice(0, f.max));
+              }}
               {...aria}
             />
           ) : (
@@ -321,10 +330,22 @@ function ItemTools({ index, count, what, onMove, onRemove }: { index: number; co
   );
 }
 
+let lastKey = 0;
+const itemKey = (item: Record<string, unknown>) => (typeof item.id === "string" ? item.id : `k${++lastKey}`);
+
 function ListField({ field: f, value, path, ctx }: { field: Extract<Field, { kind: "list" }>; value: Record<string, unknown>[]; path: Path; ctx: Ctx }) {
   const error = ctx.errors[keyOf(path)];
   const full = f.max !== undefined && value.length >= f.max;
-  const keyFor = (item: Record<string, unknown>, i: number) => String(item.id ?? i);
+  // Each item keeps one key while it's moved, or items around it are added or removed, so whether it's open (and
+  // keyboard focus) stays with the item, not its position. Items with an id use it; the rest get one here. When
+  // the list changes from outside (Undo my changes, a save), the keys start again.
+  const [keys, setKeys] = useState<string[]>(() => value.map(itemKey));
+  let current = keys;
+  if (keys.length !== value.length) {
+    current = value.map(itemKey);
+    setKeys(current);
+  }
+  const keyFor = (item: Record<string, unknown>, i: number) => (typeof item.id === "string" ? item.id : current[i]);
   // Long lists start folded, so the page shows every item's name at a glance. New items and items with a
   // problem open by themselves.
   const [opened, setOpened] = useState<Set<string>>(() => new Set());
@@ -359,7 +380,8 @@ function ListField({ field: f, value, path, ctx }: { field: Extract<Field, { kin
         {value.map((item, i) => {
           const k = keyFor(item, i);
           const open = isOpen(item, i);
-          const bodyId = `${idFor([...path, i])}-body`;
+          // "--" can't come out of idFor, so this never clashes with a field's id (such as a field named "body").
+          const bodyId = `${idFor([...path, i])}--panel`;
           return (
             <li key={k} className={open ? "list-item" : "list-item is-folded"}>
               <div className="list-item-head">
@@ -377,8 +399,14 @@ function ListField({ field: f, value, path, ctx }: { field: Extract<Field, { kin
                     index={i}
                     count={value.length}
                     what={f.itemName}
-                    onMove={(to) => ctx.onChange(path, move(value, i, to))}
-                    onRemove={() => ctx.onChange(path, value.filter((_, j) => j !== i))}
+                    onMove={(to) => {
+                      setKeys(move(current, i, to));
+                      ctx.onChange(path, move(value, i, to));
+                    }}
+                    onRemove={() => {
+                      setKeys(current.filter((_, j) => j !== i));
+                      ctx.onChange(path, value.filter((_, j) => j !== i));
+                    }}
                   />
                 )}
               </div>
@@ -398,11 +426,14 @@ function ListField({ field: f, value, path, ctx }: { field: Extract<Field, { kin
           disabled={full}
           onClick={() => {
             const item = f.newItem!();
-            setOpened((prev) => new Set(prev).add(keyFor(item, value.length)));
+            const k = itemKey(item);
+            setKeys([...current, k]);
+            setOpened((prev) => new Set(prev).add(k));
             ctx.onChange(path, [...value, item]);
           }}
         >
-          + Add {/^[aeiou]/.test(f.itemName) ? "an" : "a"} {f.itemName}
+          {/* One string: screen readers drop a space that React renders as its own text node. */}
+          {`+ Add ${/^[aeiou]/.test(f.itemName) ? "an" : "a"} ${f.itemName}`}
         </button>
       )}
     </div>
@@ -596,9 +627,14 @@ function UnitTable({ field: f, value, path, ctx }: { field: Extract<Field, { kin
                       onChange={(e) => set(i, { price: e.target.value === "" ? null : Number(e.target.value) })}
                       aria-label={`${size}: monthly price in dollars`}
                       aria-invalid={err ? true : undefined}
+                      aria-describedby={err ? `${priceId}-error` : undefined}
                     />
                   </div>
-                  {err && <p className="field-error">{err}</p>}
+                  {err && (
+                    <p className="field-error" id={`${priceId}-error`}>
+                      {err}
+                    </p>
+                  )}
                 </td>
                 <td>
                   <label className="toggle">
@@ -652,7 +688,7 @@ function StringsField({ field: f, value, path, ctx }: { field: Extract<Field, { 
         })}
       </ol>
       <button type="button" className="btn-admin secondary" disabled={value.length >= f.max} onClick={() => ctx.onChange(path, [...value, ""])}>
-        + Add {/^[aeiou]/.test(f.itemName) ? "an" : "a"} {f.itemName}
+        {`+ Add ${/^[aeiou]/.test(f.itemName) ? "an" : "a"} ${f.itemName}`}
       </button>
     </div>
   );

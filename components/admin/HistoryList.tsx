@@ -49,8 +49,8 @@ export function HistoryList({ rows }: { rows: HistoryRow[] }) {
               </span>
             </div>
             {asking?.id === r.id ? (
-              <span className="confirm">
-                <span>
+              <span className="confirm" role="group" aria-labelledby={`ask-${r.id}`}>
+                <span id={`ask-${r.id}`}>
                   {asking.kind === "undo"
                     ? "Put back what these fields said before this save? Nothing else changes."
                     : "Make the whole website look exactly as it did right after this save? Every change saved after it is undone too."}

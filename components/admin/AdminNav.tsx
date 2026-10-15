@@ -14,8 +14,12 @@ export function AdminNav({ groups, user }: { groups: NavGroup[]; user: { name: s
     const List = g.numbered ? "ol" : "ul";
     return (
       <div key={gi} className="nav-group">
-        {g.label && <p className="nav-label">{g.label}</p>}
-        <List className={g.numbered ? "numbered" : undefined}>
+        {g.label && (
+          <p className="nav-label" aria-hidden="true">
+            {g.label}
+          </p>
+        )}
+        <List className={g.numbered ? "numbered" : undefined} aria-label={g.label || undefined}>
           {g.items.map((item) => (
             <li key={item.href}>
               <a href={item.href} aria-current={pathname === item.href ? "page" : undefined}>

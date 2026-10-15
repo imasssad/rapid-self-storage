@@ -6,11 +6,17 @@ import { z } from "zod";
 const text = (max: number) => z.string().trim().max(max, `Keep this under ${max} characters.`);
 const required = (max: number) => text(max).min(1, "This can't be empty.");
 
-const link = z
-  .string()
-  .trim()
-  .max(500, "This link is too long.")
-  .refine((v) => /^(https:\/\/[^\s]+|tel:\+?[0-9-]+)$/i.test(v), "Use a full link that starts with https://");
+/** "rapidselfstorage.com/x" becomes "https://rapidselfstorage.com/x", so an address pasted without https:// works. */
+const withHttps = (v: unknown) => (typeof v === "string" && /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(v.trim()) ? `https://${v.trim()}` : v);
+
+const link = z.preprocess(
+  withHttps,
+  z
+    .string()
+    .trim()
+    .max(500, "This link is too long.")
+    .refine((v) => /^(https:\/\/[^\s]+|tel:\+?[0-9-]+)$/i.test(v), "Use a full link that starts with https://"),
+);
 const optionalLink = z.union([z.literal(""), link]);
 
 const date = z.union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date.")]);

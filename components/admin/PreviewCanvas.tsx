@@ -146,6 +146,7 @@ export function PreviewCanvas() {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== location.origin || e.source !== window.parent) return;
       const d = e.data as { type?: string; target: PreviewTarget; content: SiteContent; now: number };
+      if (d?.type === PREVIEW_MSG.hello) window.parent.postMessage({ type: PREVIEW_MSG.ready }, location.origin);
       if (d?.type === PREVIEW_MSG.content) setState((s) => ({ target: d.target, content: d.content, now: d.now, n: (s?.n ?? 0) + 1 }));
     };
     window.addEventListener("message", onMessage);

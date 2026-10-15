@@ -7,7 +7,7 @@ import { storageMode } from "@/lib/storage";
 
 // The jobs people come here for most, each one click from the start screen.
 const tasks = [
-  { href: "/admin/units#f-units-items", title: "Change a price", text: "Or mark a unit size as sold out." },
+  { href: "/admin/units#f-units-items-table", title: "Change a price", text: "Or mark a unit size as sold out." },
   { href: "/admin/specials", title: "Post a special offer", text: "A deal in the bar at the very top of the site." },
   { href: "/admin/navbar", title: "Change the menu or logo", text: "Logo, menu links, top buttons and the Pay link." },
   { href: "/admin/contact#f-contact-gateOpens", title: "Change opening hours", text: "Gate hours and office hours." },

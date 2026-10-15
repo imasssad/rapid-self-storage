@@ -535,6 +535,8 @@ html:has(.preview-root), html:has(.preview-root) body { overflow: hidden; backgr
   color: #fff; font-size: 0.72rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.9;
 }
 .map-zone:hover, .map-zone.is-active { outline-color: var(--blue); background: rgba(29, 91, 255, 0.1); }
+.map-zone.is-short { z-index: 2; }
+.map-zone.is-short span { left: auto; right: 6px; }
 .map-zone:hover span, .map-zone.is-active span { background: var(--blue); opacity: 1; }
 .map-list { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
 .map-list a {

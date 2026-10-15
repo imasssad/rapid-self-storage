@@ -2,7 +2,7 @@
 
 // One admin screen: the fields for one part of the website on the left, a live preview of that part on the right.
 // The draft is the whole site content (the preview needs it), but only this screen's parts are saved.
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { saveScreen } from "@/app/admin/actions";
 import { fieldErrors, sectionSchemas, type SectionKey, type SiteContent } from "@/lib/content-schema";
 import type { UploadMode } from "@/lib/media";
@@ -31,8 +31,12 @@ export function ScreenEditor({ screen, content, uploadMode }: { screen: ScreenKe
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [device, setDevice] = useState<Device>("computer");
   const [showPreview, setShowPreview] = useState(true);
-  // What this screen held before the last save, for "Undo this save".
+  // What was stored just before the last save, for "Undo this save".
   const [before, setBefore] = useState<unknown[] | null>(null);
+  const statusRef = useRef<HTMLParagraphElement>(null);
+  const conflictRef = useRef<HTMLDivElement>(null);
+  // Set when the person chose to drop their changes, so the browser doesn't ask "Leave site?" as well.
+  const leaving = useRef(false);
 
   const scoped = (c: SiteContent) => JSON.stringify(def.scopes.map((p) => getAt(c, p)));
   const dirty = useMemo(() => scoped(draft) !== scoped(saved), [draft, saved]); // eslint-disable-line react-hooks/exhaustive-deps -- scopes are fixed per screen
@@ -42,6 +46,7 @@ export function ScreenEditor({ screen, content, uploadMode }: { screen: ScreenKe
   useEffect(() => {
     if (!dirty) return;
     const warn = (e: BeforeUnloadEvent) => {
+      if (leaving.current) return;
       e.preventDefault();
       e.returnValue = "";
     };
@@ -59,10 +64,20 @@ export function ScreenEditor({ screen, content, uploadMode }: { screen: ScreenKe
       if (!el) return;
       el.scrollIntoView({ block: "center" });
       el.classList.add("is-target");
-      if (el.matches("input, textarea, select")) (el as HTMLInputElement).focus({ preventScroll: true });
+      const control = el.matches("input, textarea, select")
+        ? el
+        : el.querySelector<HTMLElement>("input:not([type=file]):not([type=checkbox]), textarea, select, button");
+      control?.focus({ preventScroll: true });
     }, 60);
     return () => clearTimeout(t);
   }, []);
+
+  // A conflict is reported above the form: bring it into view and put focus on its main choice.
+  useEffect(() => {
+    if (status.kind !== "conflict") return;
+    conflictRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    conflictRef.current?.querySelector<HTMLButtonElement>("button.primary")?.focus({ preventScroll: true });
+  }, [status.kind]);
 
   // Phones get the phone-sized preview by default.
   useEffect(() => {
@@ -103,7 +118,7 @@ export function ScreenEditor({ screen, content, uploadMode }: { screen: ScreenKe
       return showErrors(res.fieldErrors ?? {}, res.error);
     }
     const stored = def.scopes.reduce((c, p, i) => setAt(c, p, res.values[i]), clean);
-    setBefore(valuesOf(saved));
+    setBefore(res.previous);
     setErrors({});
     setSaved(stored);
     setDraft(stored);
@@ -120,6 +135,7 @@ export function ScreenEditor({ screen, content, uploadMode }: { screen: ScreenKe
     setSaved(restored);
     setDraft(restored);
     setStatus({ kind: "undone" });
+    statusRef.current?.focus();
   }
 
   function onSave(e: React.FormEvent) {
@@ -160,10 +176,17 @@ export function ScreenEditor({ screen, content, uploadMode }: { screen: ScreenKe
             </div>
           )}
           {status.kind === "conflict" && (
-            <div className="notice error" role="alert">
+            <div ref={conflictRef} className="notice error" role="alert">
               <p>{status.message}</p>
               <p className="notice-actions">
-                <button type="button" className="btn-admin secondary" onClick={() => location.reload()}>
+                <button
+                  type="button"
+                  className="btn-admin secondary"
+                  onClick={() => {
+                    leaving.current = true;
+                    location.reload();
+                  }}
+                >
                   Show their version (drops my changes)
                 </button>
                 <button type="button" className="btn-admin primary" onClick={() => void save(true)}>
@@ -225,12 +248,14 @@ export function ScreenEditor({ screen, content, uploadMode }: { screen: ScreenKe
               setDraft(saved);
               setErrors({});
               setStatus({ kind: "idle" });
+              statusRef.current?.focus();
             }}
           >
             Undo my changes
           </button>
         )}
-        <p className="save-status" role="status" aria-live="polite">
+        {/* Focus lands here after an undo removes the button that was pressed. */}
+        <p ref={statusRef} className="save-status" role="status" aria-live="polite" tabIndex={-1}>
           {status.kind === "saved" && !dirty ? (
             <>
               <span className="ok">Saved. Your website is updated.</span>{" "}

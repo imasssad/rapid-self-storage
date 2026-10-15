@@ -32,7 +32,7 @@ function buildIndex(owner: boolean): Entry[] {
           walk(f.fields, f.key ? [...path, f.key] : path, f.label);
           continue;
         }
-        const href = `/admin/${key}#f-${[...path, f.key].join("-")}`;
+        const href = `/admin/${key}#f-${[...path, f.key].join("-")}${f.kind === "unitTable" ? "-table" : ""}`;
         const where = [s.title, context].filter(Boolean).join(" › ");
         out.push({ href, title: f.label, where, strong: `${f.label} ${s.title}`, text: f.help ?? "", screenLevel: false });
         if (f.kind === "list") {
@@ -52,6 +52,13 @@ function buildIndex(owner: boolean): Entry[] {
     };
     for (const block of screenBlocks[key]) walk(block.fields, block.path, block.title ?? "");
   }
+  // The tool pages aren't website screens, but people look for them here too.
+  const tools = [
+    { href: "/admin/history", title: "Change history & undo", where: "See what was changed and undo it.", strong: "undo history change changes version restore back mistake", owner: false },
+    { href: "/admin/account", title: "Your account", where: "Change your password.", strong: "password account sign in login my", owner: false },
+    { href: "/admin/users", title: "People who can sign in", where: "Add a person, reset a password or remove access.", strong: "people person user users staff employee access add someone reset password", owner: true },
+  ];
+  for (const { owner: ownersOnly, ...t } of tools) if (!ownersOnly || owner) out.push({ ...t, text: "", screenLevel: true });
   return out;
 }
 

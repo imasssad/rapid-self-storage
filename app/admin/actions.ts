@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import {
   AuthError,
   MIN_PASSWORD,
+  SetupError,
   checkCredentials,
   clearFailures,
   endSession,
@@ -17,12 +18,14 @@ import {
   recordFailure,
   requireUserFor,
   saveUsers,
+  signInSetupProblem,
   startSession,
   type Role,
   type StoredUser,
 } from "@/lib/auth";
 import { CONTENT_TAG, normalizeContent, readContent, readHistoryEntry, saveContent } from "@/lib/content";
 import { fieldErrors, isSectionKey, ownerOnlySections, sectionSchemas, type SiteContent } from "@/lib/content-schema";
+import { BlobError } from "@vercel/blob";
 import bcrypt from "bcryptjs";
 
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string; fieldErrors?: Record<string, string> };
@@ -47,6 +50,10 @@ export async function login(_prev: { error?: string } | undefined, formData: For
   const generic = { error: "Email or password is incorrect." };
   if (!email || !password) return generic;
 
+  // Name a missing setup step (no Blob store, no SESSION_SECRET…) instead of a vague failure.
+  const problem = signInSetupProblem();
+  if (problem) return { error: problem };
+
   try {
     const locked = await lockoutMinutes(email);
     if (locked) return { error: `Too many attempts. For your security, sign-in is paused for ${locked} minutes.` };
@@ -62,6 +69,10 @@ export async function login(_prev: { error?: string } | undefined, formData: For
     await startSession(user);
   } catch (err) {
     console.error(err);
+    if (err instanceof SetupError) return { error: err.message };
+    if (err instanceof BlobError) {
+      return { error: `The Blob store refused the request (${err.message}). Check that it's a Private store connected to this project, then redeploy.` };
+    }
     return { error: "Signing in isn't working right now. Try again in a minute." };
   }
   redirect("/admin");

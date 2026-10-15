@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/lib/site";
+import { brand } from "@/lib/brand";
 
 // Kept from the old site so staff bookmarks keep working. Not linked anywhere and not indexed.
 export const metadata: Metadata = {
@@ -13,10 +13,10 @@ export default function EmployeePage() {
     <main className="section employee">
       <div className="wrap">
         <Link className="text-link" href="/">
-          ← {site.name}
+          ← {brand.name}
         </Link>
         <h1>Employee schedule</h1>
-        <iframe title="Employee schedule calendar" src={site.employeeCalendarUrl} loading="lazy" />
+        <iframe title="Employee schedule calendar" src={brand.employeeCalendarUrl} loading="lazy" />
       </div>
     </main>
   );

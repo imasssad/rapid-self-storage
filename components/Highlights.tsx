@@ -1,32 +1,34 @@
-import { about, highlights } from "@/lib/site";
+import type { IconName, SiteContent } from "@/lib/content-schema";
 import { Icon } from "./Icon";
 
-export function Highlights() {
+type Props = { why: SiteContent["home"]["why"]; highlights: SiteContent["home"]["highlights"] };
+
+const icons: IconName[] = ["tag", "key", "people", "camera"];
+
+export function Highlights({ why, highlights }: Props) {
   return (
     <section className="section why" aria-labelledby="why-title">
       <div className="wrap why-grid">
         <div className="why-copy" data-reveal>
           <p className="eyebrow">Why Rapid Self Storage</p>
-          <h2 id="why-title">Convenient, safe and affordable, right here in Tulare.</h2>
+          <h2 id="why-title">{why.heading}</h2>
           <div className="prose">
-            {about.map((p) => (
-              <p key={p.slice(0, 24)}>{p}</p>
+            {why.paragraphs.map((p, i) => (
+              <p key={i}>{p}</p>
             ))}
           </div>
           <div className="why-stat">
             <strong>
               <span data-count="110">110</span>%
             </strong>
-            <span>
-              Features aside, we have one focus: the complete satisfaction of every customer.
-            </span>
+            <span>{why.satisfaction}</span>
           </div>
         </div>
         <ul className="why-cards">
           {highlights.map((h, i) => (
-            <li key={h.title} className="card" data-reveal style={{ "--i": i } as React.CSSProperties}>
+            <li key={i} className="card" data-reveal style={{ "--i": i } as React.CSSProperties}>
               <span className="icon-chip">
-                <Icon name={h.icon} />
+                <Icon name={icons[i]} />
               </span>
               <h3>{h.title}</h3>
               <p>{h.body}</p>

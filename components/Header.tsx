@@ -1,9 +1,12 @@
-import { nav, site } from "@/lib/site";
+import type { ContactInfo } from "@/lib/content-schema";
+import { brand } from "@/lib/brand";
+import { gateHoursText, phoneHref } from "@/lib/format";
+import { nav } from "@/lib/nav";
 import { Icon } from "./Icon";
 import { Mark } from "./Mark";
 import { MobileMenu } from "./MobileMenu";
 
-export function Header() {
+export function Header({ contact }: { contact: ContactInfo }) {
   return (
     <>
       <div className="utility">
@@ -11,26 +14,28 @@ export function Header() {
           <div className="utility-group">
             <span className="utility-item utility-hide-sm">
               <Icon name="pin" className="icon-xs" />
-              {site.address.street}, {site.address.city}, {site.address.region}
+              {contact.street}, {contact.city}, {contact.region}
             </span>
             <span className="utility-item utility-hide-sm">
               <Icon name="clock" className="icon-xs" />
-              Gate open {site.gateHours}
+              Gate open {gateHoursText(contact)}
             </span>
           </div>
-          <a className="utility-item" href={site.phoneHref}>
+          <a className="utility-item" href={phoneHref(contact.phone)}>
             <Icon name="phone" className="icon-xs" />
-            Call {site.phoneDisplay}
+            Call {contact.phone}
           </a>
         </div>
       </div>
       <header className="site-header">
         <div className="wrap bar">
-          <a className="brand" href="#top" aria-label="Rapid Self Storage, back to top">
+          <a className="brand" href="#top" aria-label={`${brand.name}, back to top`}>
             <Mark />
             <span className="brand-text">
-              <span className="brand-name">{site.name}</span>
-              <span className="brand-sub">Tulare, California</span>
+              <span className="brand-name">{brand.name}</span>
+              <span className="brand-sub">
+                {contact.city}, California
+              </span>
             </span>
           </a>
           <nav className="nav" aria-label="Main">
@@ -41,13 +46,18 @@ export function Header() {
             ))}
           </nav>
           <div className="header-actions">
-            <a className="btn btn-outline btn-sm" href={site.payUrl}>
+            <a className="btn btn-outline btn-sm" href={contact.payUrl}>
               Pay bill
             </a>
-            <a className="btn btn-blue btn-sm" href={site.reserveUrl}>
+            <a className="btn btn-blue btn-sm" href={contact.reserveUrl}>
               Reserve a unit
             </a>
-            <MobileMenu />
+            <MobileMenu
+              payUrl={contact.payUrl}
+              sisterLoginUrl={contact.sisterLoginUrl}
+              phone={contact.phone}
+              phoneHref={phoneHref(contact.phone)}
+            />
           </div>
         </div>
       </header>

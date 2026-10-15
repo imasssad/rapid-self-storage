@@ -154,6 +154,18 @@ p { margin: 0; text-wrap: pretty; }
   .card:hover .icon-chip { background: var(--blue); color: #fff; rotate: -6deg; scale: 1.06; }
 }
 
+/* Specials bar (above the header, set in the admin panel) */
+.specials { background: linear-gradient(90deg, var(--blue), #3d74ff); color: #fff; font-size: 0.95rem; }
+.specials-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.35rem 1rem; padding-block: 0.6rem; text-align: center; }
+.specials-tag {
+  display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.15rem 0.6rem; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.specials strong { font-weight: 750; }
+.specials p span { color: rgba(255, 255, 255, 0.88); }
+.specials-link { display: inline-flex; align-items: center; gap: 0.35rem; color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 0.2em; }
+.specials :focus-visible { outline-color: #fff; }
+
 /* Utility bar + header */
 .utility { background: var(--navy); color: var(--on-navy-muted); font-size: 0.86rem; }
 .utility .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25rem 1.5rem; padding-block: 0.55rem; }
@@ -342,6 +354,15 @@ html[data-scrolled] .bar { padding-block: 0.6rem; }
 .plan-info p:not(.plan-size) { color: var(--muted); margin-top: 0.2rem; max-width: 30em; }
 .picker-note { margin-top: 1.5rem; color: var(--muted); font-size: 0.95rem; text-align: center; }
 
+/* Prices and sold-out sizes (set in the admin panel) */
+.size-option .name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.5rem; }
+.size-price { color: var(--blue); font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.size-tag { display: inline-block; padding: 0.1rem 0.55rem; border-radius: 999px; background: #fef3f2; color: #b42318; font-size: 0.75rem; font-weight: 700; }
+.size-option.is-sold-out .dims, .size-option.is-sold-out .sqft { opacity: 0.45; }
+.plan-panel.is-sold-out .footprint { opacity: 0.4; filter: grayscale(1); }
+.plan-info p.plan-price { margin-top: 0.45rem; color: var(--muted); font-weight: 600; }
+.plan-price strong { color: var(--ink); font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
 /* Steps */
 .steps-wrap { position: relative; }
 .steps-line {
@@ -467,6 +488,18 @@ html[data-scrolled] .bar { padding-block: 0.6rem; }
 .place.is-home .where, .place.is-home .what { color: var(--on-navy-muted); }
 .place.is-home .icon-chip { background: var(--blue); color: #fff; }
 
+/* Reviews (shown once at least one is switched on in the admin panel) */
+.review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 1.1rem; margin: 0; padding: 0; list-style: none; }
+.review {
+  display: grid; gap: 0.9rem; align-content: start; padding: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+  background: var(--mist); border: 1px solid var(--line); border-radius: var(--radius-lg);
+}
+.review blockquote { margin: 0; font-size: 1.06rem; line-height: 1.65; }
+.review-name { font-weight: 700; }
+.stars { display: inline-flex; gap: 2px; }
+.stars svg { width: 20px; height: 20px; fill: var(--line-strong); }
+.stars svg.on { fill: #f5a524; }
+
 /* FAQ */
 .faq-grid { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2.5rem, 1rem + 5vw, 6rem); align-items: start; }
 .faq-intro { display: grid; gap: 1.2rem; justify-items: start; position: sticky; top: 7rem; }
@@ -503,6 +536,7 @@ html[data-scrolled] .bar { padding-block: 0.6rem; }
 .visit-label { color: var(--muted); font-size: 0.88rem; }
 .visit-info li > :last-child { font-weight: 650; font-size: 1.06rem; line-height: 1.4; }
 .visit-info a { text-decoration: none; transition: color 0.2s; }
+.office-line { display: block; }
 .visit-info a:hover { color: var(--blue); }
 .form-panel { padding: clamp(1.5rem, 1rem + 2vw, 2.75rem); background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); }
 .form-panel h3 { font-size: clamp(1.35rem, 1.2rem + 0.6vw, 1.7rem); margin-bottom: 0.35rem; letter-spacing: -0.02em; }

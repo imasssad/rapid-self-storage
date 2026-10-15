@@ -6,3 +6,6 @@ out
 .env
 next-env.d.ts
 *.tsbuildinfo
+
+# Local stand-in for the Blob store (content, users, uploads) in development
+.data

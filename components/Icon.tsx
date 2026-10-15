@@ -1,4 +1,4 @@
-import type { IconName } from "@/lib/site";
+import type { IconName } from "@/lib/content-schema";
 
 type Name = IconName | "phone" | "mail" | "map" | "instagram" | "arrow" | "check";
 

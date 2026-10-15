@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { contactLocations, site } from "@/lib/site";
+import { readContent } from "@/lib/content";
 
-export const runtime = "nodejs";
+// Runs on the Node.js runtime (the default; the `runtime` segment option is not allowed with Cache Components).
 
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -23,19 +23,24 @@ export async function POST(req: Request) {
   const email = clip(body.email, 200);
   const phone = clip(body.phone, 40);
   const message = clip(body.message, 4000);
-  const locationValue = clip(body.location, 40);
-  const location = contactLocations.find((l) => l.value === locationValue)?.label ?? "Tulare, 1682 N J St";
+  const locationValue = clip(body.location, 80);
+  const content = await readContent();
+  const phoneDisplay = content.contact.phone;
+  const location =
+    content.locations.items.find((l) => l.name === locationValue)?.name ?? content.locations.items[0]?.name ?? "Not given";
 
   if (!name || !/^\S+@\S+\.\S+$/.test(email)) {
     return NextResponse.json({ message: "Enter your name and a valid email address." }, { status: 422 });
   }
 
   const apiKey = process.env.RESEND_API_KEY;
-  const to = process.env.CONTACT_TO_EMAIL;
+  // Recipients set in the admin panel (Settings) win; the env var is the fallback.
+  const saved = content.settings.contactEmails;
+  const to = saved.length ? saved.join(",") : process.env.CONTACT_TO_EMAIL;
   const from = process.env.CONTACT_FROM_EMAIL;
   if (!apiKey || !to || !from) {
     return NextResponse.json(
-      { message: `Online messages aren't set up yet. Call ${site.phoneDisplay} to reach the office.` },
+      { message: `Online messages aren't set up yet. Call ${phoneDisplay} to reach the office.` },
       { status: 503 },
     );
   }
@@ -68,7 +73,7 @@ export async function POST(req: Request) {
   if (!res.ok) {
     console.error("Resend error", res.status, await res.text().catch(() => ""));
     return NextResponse.json(
-      { message: `The message didn't go through. Call ${site.phoneDisplay} to reach the office.` },
+      { message: `The message didn't go through. Call ${phoneDisplay} to reach the office.` },
       { status: 502 },
     );
   }

@@ -4,7 +4,7 @@ import { SectionEditor } from "@/components/admin/SectionEditor";
 import { requireUser } from "@/lib/auth";
 import { readContent } from "@/lib/content";
 import { isSectionKey, ownerOnlySections } from "@/lib/content-schema";
-import { storageMode } from "@/lib/storage";
+import { uploadMode } from "@/lib/storage";
 
 export const metadata: Metadata = { title: "Edit" };
 
@@ -21,5 +21,5 @@ export default async function SectionPage({ params }: { params: Promise<{ sectio
     );
   }
   const content = await readContent();
-  return <SectionEditor key={section} section={section} initial={content[section]} storageMode={storageMode()} />;
+  return <SectionEditor key={section} section={section} initial={content[section]} uploadMode={uploadMode()} />;
 }

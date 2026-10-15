@@ -3,6 +3,7 @@
 // Renders a section's fields (see sections.ts) as a plain, labelled form.
 import { useState } from "react";
 import { DAYS } from "@/lib/format";
+import type { UploadMode } from "@/lib/media";
 import type { Field } from "./sections";
 import { PhotoField } from "./PhotoField";
 
@@ -10,7 +11,7 @@ type Path = (string | number)[];
 type Ctx = {
   errors: Record<string, string>;
   onChange: (path: Path, value: unknown) => void;
-  storageMode: "blob" | "local";
+  uploadMode: UploadMode;
 };
 
 const idFor = (path: Path) => `f-${path.join("-")}`;
@@ -190,7 +191,7 @@ function FieldView({ field: f, value, path, ctx }: { field: Exclude<Field, { kin
           value={value as { src: string; alt: string; credit: string }}
           onChange={set}
           errors={{ src: ctx.errors[`${keyOf(path)}.src`], alt: ctx.errors[`${keyOf(path)}.alt`] }}
-          storageMode={ctx.storageMode}
+          uploadMode={ctx.uploadMode}
         />
       );
     case "week":

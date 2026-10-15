@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { isPhotoType, MAX_PHOTO_BYTES, mediaPathFor } from "@/lib/media";
+import type { UploadMode } from "@/lib/media";
 
 type Photo = { src: string; alt: string; credit: string };
 type Props = {
@@ -11,17 +12,19 @@ type Props = {
   value: Photo;
   onChange: (v: Photo) => void;
   errors: { src?: string; alt?: string };
-  storageMode: "blob" | "local";
+  uploadMode: UploadMode;
 };
 
-async function uploadPhoto(file: File, mode: "blob" | "local"): Promise<string> {
+async function uploadPhoto(file: File, mode: UploadMode): Promise<string> {
   if (!isPhotoType(file.type)) throw new Error("Use a JPG, PNG or WebP photo.");
   if (file.size > MAX_PHOTO_BYTES) throw new Error("That photo is over 8 MB. Use a smaller one, or export it at a lower size.");
 
-  if (mode === "blob") {
-    // Straight from the browser to the private Blob store; the server only hands out a short-lived token.
-    const { upload } = await import("@vercel/blob/client");
-    const blob = await upload(mediaPathFor(file.name, file.type), file, {
+  if (mode !== "local") {
+    // Straight from the browser to the private Blob store; the server only hands out short-lived permission
+    // (a client token, or a presigned URL when the store is connected with Vercel OIDC instead of a token).
+    const { upload, uploadPresigned } = await import("@vercel/blob/client");
+    const send = mode === "token" ? upload : uploadPresigned;
+    const blob = await send(mediaPathFor(file.name, file.type), file, {
       access: "private",
       handleUploadUrl: "/api/admin/upload",
       contentType: file.type,
@@ -37,7 +40,7 @@ async function uploadPhoto(file: File, mode: "blob" | "local"): Promise<string> 
   return `/${json.pathname}`;
 }
 
-export function PhotoField({ id, label, help, value, onChange, errors, storageMode }: Props) {
+export function PhotoField({ id, label, help, value, onChange, errors, uploadMode }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -50,7 +53,7 @@ export function PhotoField({ id, label, help, value, onChange, errors, storageMo
     setProblem(null);
     setBusy(true);
     try {
-      const src = await uploadPhoto(file, storageMode);
+      const src = await uploadPhoto(file, uploadMode);
       setPreview(URL.createObjectURL(file));
       // A new upload replaces the placeholder, so the Unsplash credit goes away.
       onChange({ ...value, src, credit: "" });

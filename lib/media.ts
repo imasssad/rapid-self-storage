@@ -1,5 +1,13 @@
 // Rules for uploaded photos, shared by the browser (before uploading) and the server (before accepting).
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+
+/**
+ * How the admin panel uploads photos (decided on the server by lib/storage.ts uploadMode()):
+ * - "token": client upload with a short-lived client token (needs BLOB_READ_WRITE_TOKEN)
+ * - "presigned": client upload with a presigned URL (works with Vercel OIDC + BLOB_STORE_ID, no token needed)
+ * - "local": the browser posts the file to the server, which writes it to .data/
+ */
+export type UploadMode = "token" | "presigned" | "local";
 export const PHOTO_TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const;
 export type PhotoType = keyof typeof PHOTO_TYPES;
 

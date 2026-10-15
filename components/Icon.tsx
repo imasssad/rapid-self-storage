@@ -1,6 +1,6 @@
 import type { IconName } from "@/lib/content-schema";
 
-type Name = IconName | "phone" | "mail" | "map" | "instagram" | "arrow" | "check";
+type Name = IconName | "phone" | "mail" | "map" | "instagram" | "arrow" | "check" | "lock" | "eye" | "eyeOff" | "bolt" | "undo";
 
 const paths: Record<Name, React.ReactNode> = {
   tag: (
@@ -87,6 +87,31 @@ const paths: Record<Name, React.ReactNode> = {
   ),
   arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
+  lock: (
+    <>
+      <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" />
+      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  eyeOff: (
+    <>
+      <path d="M10.6 5.6A9.7 9.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.7 3.4M6.6 6.6C3.9 8.3 2.5 12 2.5 12S6 18.5 12 18.5c1.9 0 3.5-.6 4.9-1.5" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18" />
+    </>
+  ),
+  bolt: <path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12Z" />,
+  undo: (
+    <>
+      <path d="M9 14 4 9l5-5" />
+      <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+    </>
+  ),
   shield: (
     <>
       <path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6Z" />

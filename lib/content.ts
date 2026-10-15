@@ -3,6 +3,8 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { sectionKeys, sectionSchemas, siteContentSchema, type SectionKey, type SiteContent } from "./content-schema";
+import type { ScreenKey } from "./screens";
+import { changedPaths } from "./diff";
 import { defaultContent } from "./site";
 import { deleteFiles, listFiles, readJSON, writeJSON } from "./storage";
 
@@ -16,11 +18,13 @@ type Editor = { email: string; name: string };
 export type HistoryEntry = {
   savedAt: string;
   savedBy: Editor;
-  section: SectionKey | "restore";
+  /** The admin screen that was saved (older entries name a whole content section), or a restore. */
+  section: ScreenKey | SectionKey | "restore";
   note?: string;
   content: SiteContent;
 };
-export type HistoryItem = Omit<HistoryEntry, "content"> & { id: string };
+/** `changes`: what this save changed compared with the version before it (null for the oldest kept version). */
+export type HistoryItem = Omit<HistoryEntry, "content"> & { id: string; changes: (string | number)[][] | null };
 
 const isPlainObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
@@ -116,16 +120,31 @@ async function deleteUnusedPhotos(current: SiteContent, history: HistoryEntry[])
 }
 
 export async function listHistory(): Promise<HistoryItem[]> {
-  const files = await historyFiles();
+  const files = (await historyFiles()).slice(0, HISTORY_KEEP + 1); // one extra, to describe the oldest shown save
   const entries = await Promise.all(
-    files.slice(0, HISTORY_KEEP).map(async (f) => {
+    files.map(async (f) => {
       const e = await readJSON<HistoryEntry>(f.pathname);
-      if (!e) return null;
-      const { content: _content, ...meta } = e;
-      return { ...meta, id: f.pathname.slice(HISTORY_PREFIX.length) };
+      return e && { ...e, id: f.pathname.slice(HISTORY_PREFIX.length), content: normalizeContent(e.content) };
     }),
   );
-  return entries.filter((e): e is HistoryItem => e !== null);
+  const items: HistoryItem[] = [];
+  entries.slice(0, HISTORY_KEEP).forEach((e, i) => {
+    if (!e) return;
+    const before = entries[i + 1];
+    const { content, ...meta } = e;
+    items.push({ ...meta, changes: before ? changedPaths(before.content, content) : null });
+  });
+  return items;
+}
+
+/** A saved version and the one saved just before it (null if that one is no longer kept). */
+export async function readHistoryPair(id: string): Promise<{ entry: HistoryEntry; previous: HistoryEntry | null } | null> {
+  if (!/^[0-9TZ-]+\.json$/.test(id)) return null;
+  const files = await historyFiles();
+  const i = files.findIndex((f) => f.pathname === `${HISTORY_PREFIX}${id}`);
+  if (i === -1) return null;
+  const [entry, previous] = await Promise.all([readJSON<HistoryEntry>(files[i].pathname), files[i + 1] ? readJSON<HistoryEntry>(files[i + 1].pathname) : null]);
+  return entry && { entry, previous };
 }
 
 export async function readHistoryEntry(id: string): Promise<HistoryEntry | null> {

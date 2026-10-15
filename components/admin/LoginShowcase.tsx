@@ -5,13 +5,14 @@ import { defaultContent } from "@/lib/site";
 
 // Decorative left half of the sign-in page: the editor on a laptop, and the website on a phone updating as the
 // headline is "typed" and saved. Pure CSS animation (see .showcase in admin.css); a still picture with reduced
-// motion. It only uses the site's own default text, so it never shows made-up prices or offers.
+// motion, and a "Pause animation" switch (CSS only) otherwise. It only uses the site's own default text, so it never
+// shows made-up prices or offers.
 export function LoginShowcase() {
   const { headline, headlineAccent } = defaultContent.home.hero;
   return (
-    <div className="showcase" aria-hidden="true">
-      <div className="showcase-glow" />
-      <div className="showcase-copy">
+    <div className="showcase">
+      <div className="showcase-glow" aria-hidden="true" />
+      <div className="showcase-copy" aria-hidden="true">
         <span className="showcase-brand">
           <Mark />
           {brand.name}
@@ -22,7 +23,7 @@ export function LoginShowcase() {
         <p className="showcase-text">Change text, prices, specials and photos yourself. Save once and the website updates within seconds.</p>
       </div>
 
-      <div className="stage">
+      <div className="stage" aria-hidden="true">
         <div className="mock-laptop">
           <div className="mock-chrome">
             <i />
@@ -46,11 +47,11 @@ export function LoginShowcase() {
               <b />
             </div>
             <div className="mock-main">
-              <p className="mock-h">Homepage text</p>
+              <p className="mock-h">Top of the page</p>
               <div className="mock-card">
-                <p className="mock-label">Headline (white part)</p>
+                <p className="mock-label">Headline, first part (white)</p>
                 <p className="mock-input">{headline}</p>
-                <p className="mock-label">Headline (blue part)</p>
+                <p className="mock-label">Headline, second part (light blue)</p>
                 <p className="mock-input is-typing">
                   <span className="mock-typed">{headlineAccent}</span>
                 </p>
@@ -77,7 +78,7 @@ export function LoginShowcase() {
             <div className="ps-hero">
               <div className="ps-doors" />
               <p>
-                {headline} <span>{headlineAccent}</span>
+                {headline} <span data-text={headlineAccent}>{headlineAccent}</span>
               </p>
               <em>Reserve a unit</em>
             </div>
@@ -104,6 +105,10 @@ export function LoginShowcase() {
           Private and secure
         </span>
       </div>
+      <label className="showcase-pause">
+        <input type="checkbox" className="sr-only" />
+        Pause animation
+      </label>
     </div>
   );
 }

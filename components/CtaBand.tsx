@@ -7,7 +7,7 @@ type Props = { cta: SiteContent["home"]["cta"]; contact: ContactInfo; photo: Pho
 
 export function CtaBand({ cta, contact, photo }: Props) {
   return (
-    <section className="cta" aria-labelledby="cta-title">
+    <section className="cta" id="reserve" aria-labelledby="cta-title">
       <div className="wrap">
         <div className="cta-frame" data-reveal="zoom">
           <Image src={photo.src} alt="" fill sizes="(max-width: 1416px) 100vw, 1320px" />

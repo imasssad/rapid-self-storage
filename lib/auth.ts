@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { EDITOR_HINT_COOKIE } from "./editor-hint";
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession, verifySession, type Role } from "./session-token";
 import { deleteFiles, readJSON, storageMode, writeJSON } from "./storage";
 
@@ -140,7 +141,9 @@ export async function startSession(user: StoredUser): Promise<void> {
 }
 
 export async function endSession(): Promise<void> {
-  (await cookies()).delete(SESSION_COOKIE);
+  const jar = await cookies();
+  jar.delete(SESSION_COOKIE);
+  jar.delete(EDITOR_HINT_COOKIE);
 }
 
 /** The signed-in user, re-checked against the users file (so removed users and old passwords are refused). */

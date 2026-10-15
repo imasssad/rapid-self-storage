@@ -17,7 +17,7 @@ function List({ items, hidden }: { items: string[]; hidden?: boolean }) {
 export function Marquee({ items }: { items: string[] }) {
   if (!items.length) return null;
   return (
-    <section className="marquee" aria-label="Amenities">
+    <section className="marquee" id="amenities" aria-label="Amenities">
       <div className="marquee-viewport">
         <div className="marquee-track">
           <List items={items} />

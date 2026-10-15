@@ -3,6 +3,7 @@
 // Renders a screen's fields (see screen-fields.ts) as a plain, labelled form. Field ids are the full content path
 // (f-home-hero-headline), so search results and task links can point straight at a field.
 import { useEffect, useState } from "react";
+import { buttonTargets, menuTargets, type ButtonTarget, type MenuTarget } from "@/lib/content-schema";
 import { DAYS } from "@/lib/format";
 import type { UploadMode } from "@/lib/media";
 import type { Field } from "./screen-fields";
@@ -41,7 +42,7 @@ function describedBy(id: string, help?: string, error?: string) {
 }
 
 const SHORT = new Set<Field["kind"]>(["number", "date", "time", "select"]);
-const isBlock = (f: Field) => ["group", "list", "strings", "photo", "week", "unitTable"].includes(f.kind);
+const isBlock = (f: Field) => ["group", "list", "strings", "photo", "logo", "week", "unitTable", "button"].includes(f.kind);
 
 /** Browsers without CSS field-sizing: size the growing box to its text on every render. */
 function growFallback(el: HTMLTextAreaElement | null) {
@@ -62,6 +63,21 @@ function withScheme(v: string): string {
  */
 export function Fields({ fields, value, path, ctx, top = false }: { fields: Field[]; value: Record<string, unknown>; path: Path; ctx: Ctx; top?: boolean }) {
   const render = (f: Field, i: number) => {
+    if (f.kind === "target") {
+      return (
+        <div key={f.key} className="cell wide">
+          <TargetField
+            id={idFor([...path, f.key])}
+            label={f.label}
+            to={value[f.key] as MenuTarget}
+            url={String(value[f.urlKey] ?? "")}
+            onTo={(to) => ctx.onChange([...path, f.key], to)}
+            onUrl={(url) => ctx.onChange([...path, f.urlKey], url)}
+            urlError={ctx.errors[keyOf([...path, f.urlKey])]}
+          />
+        </div>
+      );
+    }
     if (f.kind === "group") {
       const groupPath = f.key ? [...path, f.key] : path;
       const groupValue = (f.key ? value[f.key] : value) as Record<string, unknown>;
@@ -103,7 +119,7 @@ export function Fields({ fields, value, path, ctx, top = false }: { fields: Fiel
   );
 }
 
-function FieldView({ field: f, value, path, ctx }: { field: Exclude<Field, { kind: "group" }>; value: unknown; path: Path; ctx: Ctx }) {
+function FieldView({ field: f, value, path, ctx }: { field: Exclude<Field, { kind: "group" | "target" }>; value: unknown; path: Path; ctx: Ctx }) {
   const id = idFor(path);
   const error = ctx.errors[keyOf(path)];
   const set = (v: unknown) => ctx.onChange(path, v);
@@ -212,6 +228,20 @@ function FieldView({ field: f, value, path, ctx }: { field: Exclude<Field, { kin
           <ErrorText id={`${id}-error`} text={error} />
         </div>
       );
+    case "logo":
+      return (
+        <PhotoField
+          id={id}
+          label={f.label}
+          help={f.help}
+          value={value as { src: string; alt: string; credit: string }}
+          onChange={set}
+          errors={{ src: ctx.errors[`${keyOf(path)}.src`] }}
+          uploadMode={ctx.uploadMode}
+          savedSrc={(ctx.savedAt?.(path) as { src?: string } | undefined)?.src}
+          logo
+        />
+      );
     case "photo":
       return (
         <PhotoField
@@ -233,6 +263,8 @@ function FieldView({ field: f, value, path, ctx }: { field: Exclude<Field, { kin
       return <StringsField field={f} value={(value as string[]) ?? []} path={path} ctx={ctx} />;
     case "unitTable":
       return <UnitTable field={f} value={(value as UnitRow[]) ?? []} path={path} ctx={ctx} />;
+    case "button":
+      return <ButtonField field={f} value={value as ButtonValue} path={path} ctx={ctx} />;
   }
 }
 
@@ -374,6 +406,153 @@ function ListField({ field: f, value, path, ctx }: { field: Extract<Field, { kin
         </button>
       )}
     </div>
+  );
+}
+
+// ---- Menu links ----
+
+const menuTargetLabels: Record<MenuTarget, string> = {
+  units: "Unit sizes",
+  how: "How it works",
+  features: "Facility features",
+  security: "Security",
+  story: "About us (our story)",
+  locations: "Locations",
+  reviews: "Customer reviews",
+  faq: "Questions & answers (FAQ)",
+  visit: "Contact",
+  top: "Top of the page",
+  link: "Another web address…",
+};
+
+type TargetProps = { id: string; label: string; to: MenuTarget; url: string; onTo: (to: MenuTarget) => void; onUrl: (url: string) => void; urlError?: string };
+
+function TargetField({ id, label, to, url, onTo, onUrl, urlError }: TargetProps) {
+  return (
+    <div className="field-grid">
+      <div className="cell">
+        <div className="field">
+          <label htmlFor={id}>{label}</label>
+          <select id={id} value={to} onChange={(e) => onTo(e.target.value as MenuTarget)}>
+            {menuTargets.map((t) => (
+              <option key={t} value={t}>
+                {t === "link" ? menuTargetLabels[t] : `This page: ${menuTargetLabels[t]}`}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      {to === "link" && (
+        <div className="cell">
+          <div className="field">
+            <label htmlFor={`${id}-url`}>Web address</label>
+            <input
+              id={`${id}-url`}
+              type="url"
+              maxLength={500}
+              placeholder="https://"
+              value={url}
+              onChange={(e) => onUrl(e.target.value)}
+              onBlur={(e) => e.target.value !== withScheme(e.target.value) && onUrl(withScheme(e.target.value))}
+              aria-invalid={urlError ? true : undefined}
+            />
+            <ErrorText id={`${id}-url-error`} text={urlError} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- Buttons ----
+
+type ButtonValue = { label: string; to: ButtonTarget; url: string };
+
+const targetLabels: Record<ButtonTarget, string> = {
+  reserve: "Your Reserve page",
+  pay: "Your Pay / customer login page",
+  call: "Call your phone number",
+  directions: "Directions (your Google Maps link)",
+  sizes: "The unit sizes on this page",
+  contact: "The contact form on this page",
+  link: "Another web address…",
+};
+
+function targetHelp(to: ButtonTarget, number?: boolean): string {
+  switch (to) {
+    case "reserve":
+    case "pay":
+      return "Uses the link saved in Hours, phone, address & links, so it stays right if that link changes.";
+    case "call":
+      return number ? "Your phone number is shown after the words." : "Taps on a phone start a call to your number.";
+    case "directions":
+      return "Opens your Google Maps link in a new tab.";
+    case "sizes":
+    case "contact":
+      return "Scrolls down to that part of the page.";
+    case "link":
+      return "Copy the full address from your browser.";
+  }
+}
+
+function ButtonField({ field: f, value, path, ctx }: { field: Extract<Field, { kind: "button" }>; value: ButtonValue; path: Path; ctx: Ctx }) {
+  const id = idFor(path);
+  const set = (patch: Partial<ButtonValue>) => ctx.onChange(path, { ...value, ...patch });
+  const err = (k: string) => ctx.errors[`${keyOf(path)}.${k}`];
+  return (
+    <fieldset className="group button-field" id={id}>
+      <legend>{f.label}</legend>
+      {f.help && <p className="help">{f.help}</p>}
+      <div className="field-grid">
+        <div className="cell">
+          <div className="field">
+            <label htmlFor={`${id}-label`}>Words on the button</label>
+            <input
+              id={`${id}-label`}
+              type="text"
+              maxLength={40}
+              value={value.label}
+              onChange={(e) => set({ label: e.target.value })}
+              aria-invalid={err("label") ? true : undefined}
+            />
+            <ErrorText id={`${id}-label-error`} text={err("label")} />
+          </div>
+        </div>
+        <div className="cell">
+          <div className="field">
+            <label htmlFor={`${id}-to`}>Goes to</label>
+            <select id={`${id}-to`} value={value.to} onChange={(e) => set({ to: e.target.value as ButtonTarget })} aria-describedby={`${id}-to-help`}>
+              {buttonTargets.map((t) => (
+                <option key={t} value={t}>
+                  {targetLabels[t]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <p className="help cell wide" id={`${id}-to-help`}>
+          {targetHelp(value.to, f.number)}
+        </p>
+        {value.to === "link" && (
+          <div className="cell wide">
+            <div className="field">
+              <label htmlFor={`${id}-url`}>Web address</label>
+              <input
+                id={`${id}-url`}
+                type="url"
+                maxLength={500}
+                placeholder="https://"
+                value={value.url}
+                onChange={(e) => set({ url: e.target.value })}
+                onBlur={(e) => e.target.value !== withScheme(e.target.value) && set({ url: withScheme(e.target.value) })}
+                aria-invalid={err("url") ? true : undefined}
+              />
+              <ErrorText id={`${id}-url-error`} text={err("url")} />
+            </div>
+          </div>
+        )}
+      </div>
+    </fieldset>
   );
 }
 

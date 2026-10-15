@@ -32,6 +32,18 @@ export const iconNames = [
 ] as const;
 export type IconName = (typeof iconNames)[number];
 
+/**
+ * Where a button can go. Most follow the shared settings (Reserve and Pay links, phone, Google Maps link), so a
+ * change there updates every button; "link" uses the button's own web address.
+ */
+export const buttonTargets = ["reserve", "pay", "call", "directions", "sizes", "contact", "link"] as const;
+export type ButtonTarget = (typeof buttonTargets)[number];
+
+export const buttonSchema = z
+  .object({ label: required(40), to: z.enum(buttonTargets), url: optionalLink })
+  .refine((b) => b.to !== "link" || b.url, { message: "Add the web address, or choose another place for the button.", path: ["url"] });
+export type SiteButton = z.infer<typeof buttonSchema>;
+
 /** Digits of a US phone number, or null when it isn't one. */
 export function phoneDigits(v: string): string | null {
   const d = v.replace(/\D/g, "");
@@ -75,6 +87,8 @@ export const unitsSchema = z.object({
   heading: required(120),
   intro: text(400),
   note: text(200),
+  button: buttonSchema,
+  soldOutButton: buttonSchema,
   items: z.array(unitSchema).min(1, "Keep at least one size.").max(20, "That's the most sizes the page can show."),
 });
 
@@ -111,6 +125,9 @@ export const homeSchema = z.object({
     facts: z.array(z.object({ label: required(30), value: required(40) })).length(3),
     tenantTitle: required(40),
     tenantText: required(160),
+    button: buttonSchema,
+    secondButton: buttonSchema,
+    tenantButton: buttonSchema,
   }),
   why: z.object({
     heading: required(120),
@@ -118,7 +135,7 @@ export const homeSchema = z.object({
     satisfaction: required(160),
   }),
   highlights: z.array(titled(50, 200)).length(4),
-  steps: z.object({ heading: required(120), items: z.array(titled(50, 220)).length(3) }),
+  steps: z.object({ heading: required(120), items: z.array(titled(50, 220)).length(3), button: buttonSchema, secondButton: buttonSchema }),
   features: z.object({
     heading: required(120),
     intro: text(400),
@@ -142,9 +159,41 @@ export const homeSchema = z.object({
     heading: required(120),
     intro: text(200),
     items: z.array(z.object({ q: required(150), a: required(600) })).max(15),
+    button: buttonSchema,
   }),
-  contact: z.object({ heading: required(120), formIntro: text(200) }),
-  cta: z.object({ kicker: text(50), heading: required(120), text: text(240) }),
+  contact: z.object({ heading: required(120), formIntro: text(200), button: buttonSchema }),
+  cta: z.object({ kicker: text(50), heading: required(120), text: text(240), button: buttonSchema, secondButton: buttonSchema }),
+  /** The bar that stays at the bottom of the screen on phones. */
+  mobileBar: z.object({ secondButton: buttonSchema, button: buttonSchema }),
+});
+
+/** Parts of the homepage a menu link can jump to (section ids), or "link" for any web address. */
+export const menuTargets = ["units", "how", "features", "security", "story", "locations", "reviews", "faq", "visit", "top", "link"] as const;
+export type MenuTarget = (typeof menuTargets)[number];
+
+export const navbarSchema = z.object({
+  /** Empty src: the standard logo mark. */
+  logo: z.object({
+    src: z
+      .string()
+      .trim()
+      .max(300)
+      .refine((v) => v === "" || /^\/media\/[a-z0-9]+-[a-z0-9-]+\.(jpg|png|webp)$/.test(v), "Upload a logo, or use the standard one."),
+    alt: text(160),
+    credit: text(80),
+  }),
+  name: required(60),
+  /** Empty: "<city>, California". */
+  tagline: text(60),
+  links: z
+    .array(
+      z
+        .object({ label: required(30), to: z.enum(menuTargets), url: optionalLink })
+        .refine((l) => l.to !== "link" || l.url, { message: "Add the web address, or choose a part of the page.", path: ["url"] }),
+    )
+    .max(8, "Use eight menu links or fewer."),
+  secondButton: buttonSchema,
+  button: buttonSchema,
 });
 
 const photoSchema = z.object({
@@ -208,6 +257,7 @@ export const settingsSchema = z.object({
 
 export const sectionSchemas = {
   specials: specialsSchema,
+  navbar: navbarSchema,
   units: unitsSchema,
   contact: contactSchema,
   home: homeSchema,

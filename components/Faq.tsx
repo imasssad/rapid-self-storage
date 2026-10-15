@@ -1,6 +1,5 @@
 import type { ContactInfo, SiteContent } from "@/lib/content-schema";
-import { phoneHref } from "@/lib/format";
-import { Icon } from "./Icon";
+import { SiteButton } from "./SiteButton";
 
 export function Faq({ faq, contact }: { faq: SiteContent["home"]["faq"]; contact: ContactInfo }) {
   if (!faq.items.length) return null;
@@ -11,10 +10,7 @@ export function Faq({ faq, contact }: { faq: SiteContent["home"]["faq"]; contact
           <p className="eyebrow">FAQ</p>
           <h2>{faq.heading}</h2>
           {faq.intro && <p className="lede">{faq.intro}</p>}
-          <a className="btn btn-outline" href={phoneHref(contact.phone)}>
-            <Icon name="phone" className="icon-sm" />
-            Call {contact.phone}
-          </a>
+          <SiteButton button={faq.button} contact={contact} className="btn btn-outline" withNumber />
         </div>
         <div className="faq-list">
           {faq.items.map((f, i) => (

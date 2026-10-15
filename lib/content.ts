@@ -101,9 +101,9 @@ async function pruneHistory(): Promise<HistoryEntry[]> {
   return kept.filter((e): e is HistoryEntry => e !== null);
 }
 
+/** Uploaded files a version uses: the four photos and the logo (older versions may have no logo yet). */
 const mediaPaths = (c: SiteContent) =>
-  Object.values(c.photos)
-    .map((p) => p.src)
+  [...Object.values(c.photos).map((p) => p.src), c.navbar?.logo?.src ?? ""]
     .filter((src) => src.startsWith("/media/"))
     .map((src) => src.slice(1));
 

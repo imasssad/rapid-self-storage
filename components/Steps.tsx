@@ -1,6 +1,6 @@
 import type { ContactInfo, IconName, SiteContent } from "@/lib/content-schema";
-import { phoneHref } from "@/lib/format";
 import { Icon } from "./Icon";
+import { SiteButton } from "./SiteButton";
 
 const icons: IconName[] = ["box", "calendar", "key"];
 
@@ -28,14 +28,8 @@ export function Steps({ steps, contact }: { steps: SiteContent["home"]["steps"];
           </ol>
         </div>
         <div className="actions steps-cta" data-reveal style={{ "--i": 4 } as React.CSSProperties}>
-          <a className="btn btn-blue btn-lg" href={contact.reserveUrl}>
-            Reserve a unit
-            <Icon name="arrow" className="icon-arrow" />
-          </a>
-          <a className="btn btn-outline btn-lg" href={phoneHref(contact.phone)}>
-            <Icon name="phone" className="icon-sm" />
-            Call {contact.phone}
-          </a>
+          <SiteButton button={steps.button} contact={contact} className="btn btn-blue btn-lg" arrow withNumber />
+          <SiteButton button={steps.secondButton} contact={contact} className="btn btn-outline btn-lg" arrow withNumber />
         </div>
       </div>
     </section>

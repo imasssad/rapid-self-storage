@@ -5,6 +5,7 @@
 
 export type ScreenKey =
   | "specials"
+  | "navbar"
   | "hero"
   | "why"
   | "units"
@@ -46,14 +47,23 @@ export const screens: Record<ScreenKey, Screen> = {
     anchor: "top",
     keywords: ["special", "offer", "deal", "promotion", "promo", "discount", "sale", "banner", "announcement", "coupon"],
   },
+  navbar: {
+    title: "Menu bar & logo",
+    group: "page",
+    blurb: "The bar at the top of every page: your logo and name, the menu links, the two buttons and the Pay / Reserve links.",
+    scopes: [["navbar"], ["contact", "payUrl"], ["contact", "reserveUrl"]],
+    anchor: "top",
+    keywords: ["menu", "navbar", "nav bar", "navigation", "header", "logo", "name", "business name", "links", "menu links", "pay", "payment", "pay link", "payment link", "reserve link", "buttons", "top bar", "bill", "storedge", "quikstor"],
+    note: "The address, gate hours and phone in the thin dark strip above the menu come from Hours, phone, address & links.",
+  },
   hero: {
     title: "Top of the page",
-    note: "Button words are fixed. Where “Reserve a unit” and “Customer login & pay” go is set in Hours, phone, address & links. The gate hours fact fills in from there too.",
+    note: "The gate hours fact fills in from Hours, phone, address & links.",
     group: "page",
-    blurb: "The big photo, headline, introduction and quick facts that visitors see first.",
+    blurb: "The big photo, headline, introduction, buttons and quick facts that visitors see first, under the menu bar.",
     scopes: [["home", "hero"], ["photos", "hero"]],
     anchor: "top",
-    keywords: ["headline", "title", "heading", "intro", "welcome", "big photo", "main photo", "picture", "image", "facts", "tenant", "pay"],
+    keywords: ["headline", "title", "heading", "intro", "welcome", "big photo", "main photo", "picture", "image", "facts", "tenant", "pay", "button", "buttons", "reserve", "menu bar", "top bar"],
   },
   why: {
     title: "Why choose us",
@@ -66,7 +76,6 @@ export const screens: Record<ScreenKey, Screen> = {
   },
   units: {
     title: "Unit sizes & prices",
-    note: "Button words are fixed. “Reserve this size” goes to your Reserve link (Hours, phone, address & links).",
     group: "page",
     blurb: "The sizes in the floor-plan picker, their monthly prices, and which ones are sold out.",
     scopes: [["units"]],
@@ -75,7 +84,7 @@ export const screens: Record<ScreenKey, Screen> = {
   },
   steps: {
     title: "How it works",
-    note: "The step numbers and the button are fixed. The button goes to your Reserve link.",
+    note: "The step numbers are fixed.",
     group: "page",
     blurb: "The three steps to rent a unit.",
     scopes: [["home", "steps"]],
@@ -141,7 +150,6 @@ export const screens: Record<ScreenKey, Screen> = {
   },
   cta: {
     title: "Bottom banner",
-    note: "The button words are fixed. “Reserve now” goes to your Reserve link and the call button uses your phone number (Hours, phone, address & links).",
     group: "page",
     blurb: "The large “Reserve your unit” banner near the bottom, with its background photo.",
     scopes: [["home", "cta"], ["photos", "facility"]],
@@ -152,7 +160,7 @@ export const screens: Record<ScreenKey, Screen> = {
     title: "Hours, phone, address & links",
     group: "business",
     blurb: "Gate and office hours, phone, address and the Pay / Reserve button links. These appear all over the site, including “Contact” in the menu.",
-    scopes: [["contact"], ["home", "contact"]],
+    scopes: [["contact"], ["home", "contact"], ["home", "mobileBar"]],
     anchor: "visit",
     keywords: ["hours", "open", "gate", "office", "phone", "number", "call", "address", "map", "directions", "instagram", "pay", "bill", "reserve", "link", "storedge", "quikstor", "contact"],
   },

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import type { ContactInfo, Photo, SiteContent } from "@/lib/content-schema";
-import { phoneHref } from "@/lib/format";
-import { Icon } from "./Icon";
+import { SiteButton } from "./SiteButton";
 
 type Props = { cta: SiteContent["home"]["cta"]; contact: ContactInfo; photo: Photo };
 
@@ -18,14 +17,8 @@ export function CtaBand({ cta, contact, photo }: Props) {
             <h2 id="cta-title">{cta.heading}</h2>
             {cta.text && <p>{cta.text}</p>}
             <div className="actions">
-              <a className="btn btn-light btn-lg" href={contact.reserveUrl}>
-                Reserve now
-                <Icon name="arrow" className="icon-arrow" />
-              </a>
-              <a className="btn btn-ghost-light btn-lg" href={phoneHref(contact.phone)}>
-                <Icon name="phone" className="icon-sm" />
-                Call {contact.phone}
-              </a>
+              <SiteButton button={cta.button} contact={contact} className="btn btn-light btn-lg" arrow withNumber />
+              <SiteButton button={cta.secondButton} contact={contact} className="btn btn-ghost-light btn-lg" arrow withNumber />
             </div>
           </div>
         </div>

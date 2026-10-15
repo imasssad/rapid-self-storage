@@ -408,6 +408,11 @@
 .photo-row { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
 .photo-preview { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border-radius: var(--radius); background: var(--mist-2); border: 1px solid var(--line); }
 .photo-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-preview.is-logo { display: grid; place-items: center; aspect-ratio: 16 / 9; padding: 1.25rem; background: var(--white); }
+.photo-preview.is-logo img { object-fit: contain; }
+.photo-preview.is-logo svg { width: 4.5rem; height: 4.5rem; }
+.button-field .field-grid > .help { margin-top: -0.6rem; }
+.button-field select, .list-item-body select { width: 100%; max-width: none; }
 .photo-badge { position: absolute; left: 0.5rem; bottom: 0.5rem; padding: 0.2rem 0.55rem; border-radius: 999px; background: var(--blue); color: #fff; font-size: 0.75rem; font-weight: 700; }
 .photo-controls { display: grid; gap: 0.75rem; justify-items: start; }
 .photo-controls .field { width: 100%; }

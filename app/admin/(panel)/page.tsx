@@ -9,6 +9,7 @@ import { storageMode } from "@/lib/storage";
 const tasks = [
   { href: "/admin/units#f-units-items", title: "Change a price", text: "Or mark a unit size as sold out." },
   { href: "/admin/specials", title: "Post a special offer", text: "A deal in the bar at the very top of the site." },
+  { href: "/admin/navbar", title: "Change the menu or logo", text: "Logo, menu links, top buttons and the Pay link." },
   { href: "/admin/contact#f-contact-gateOpens", title: "Change opening hours", text: "Gate hours and office hours." },
   { href: "/admin/contact#f-contact-phone", title: "Change phone or address", text: "Updates the header, contact section and footer." },
   { href: "/admin/photos", title: "Replace a photo", text: "Any of the four big photos." },

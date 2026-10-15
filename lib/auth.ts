@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession, verifySession, type Role } from "./session-token";
-import { deleteFiles, readJSON, writeJSON } from "./storage";
+import { deleteFiles, readJSON, storageMode, writeJSON } from "./storage";
 
 export type { Role };
 export type StoredUser = {
@@ -28,6 +28,20 @@ const MAX_FAILURES = 5;
 const WINDOW_MS = 15 * 60 * 1000;
 // A real hash of a random string, compared against when the email doesn't exist so timing doesn't reveal it.
 const DUMMY_HASH = "$2b$12$GVZ1RW58gNWLV4LONETGP.QXzZJsRS0nqAndpz2.N1/XxbBVehDVe";
+
+/** Raised when the server is missing something sign-in needs. Its message is safe to show on the login page. */
+export class SetupError extends Error {}
+
+/** What's missing on this deployment for sign-in to work, in plain words, or null when it's all set up. */
+export function signInSetupProblem(): string | null {
+  if ((process.env.SESSION_SECRET ?? "").length < 32) {
+    return "Sign-in isn't set up yet: SESSION_SECRET is missing (or shorter than 32 characters) for this deployment. Add it in Vercel under Settings → Environment Variables, then redeploy.";
+  }
+  if (storageMode() === "local" && process.env.VERCEL) {
+    return "Sign-in isn't set up yet: no Blob store is connected to this deployment. In Vercel, open Storage, create a Private Blob store, connect it to this project, then redeploy.";
+  }
+  return null;
+}
 
 export const normalizeEmail = (v: unknown) => String(v ?? "").trim().toLowerCase().slice(0, 200);
 const strip = ({ passwordHash: _hash, ...user }: StoredUser): User => user;
@@ -64,7 +78,11 @@ export async function checkCredentials(email: string, password: string): Promise
   if (users === null) {
     const envEmail = normalizeEmail(process.env.ADMIN_EMAIL);
     const envPassword = process.env.ADMIN_PASSWORD ?? "";
-    if (!envEmail || envPassword.length < MIN_PASSWORD) return null;
+    if (!envEmail || envPassword.length < MIN_PASSWORD) {
+      throw new SetupError(
+        `No owner account exists yet: set ADMIN_EMAIL and ADMIN_PASSWORD (at least ${MIN_PASSWORD} characters) for this deployment in Vercel, then redeploy.`,
+      );
+    }
     if (!sameString(email, envEmail) || !sameString(password, envPassword)) return null;
     const owner: StoredUser = {
       email: envEmail,

@@ -30,6 +30,9 @@ run `vercel env pull .env.local` (this brings down `BLOB_READ_WRITE_TOKEN`); be 
    `ADMIN_PASSWORD` (10+ characters), and optionally `RESEND_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_TO_EMAIL`. Redeploy.
 4. The owner signs in at `/admin` with `ADMIN_EMAIL` / `ADMIN_PASSWORD`. That creates the owner account; then
    **delete `ADMIN_PASSWORD` from Vercel** (it's ignored from then on, but shouldn't sit there).
+   If sign-in can't work yet, the login page says exactly what's missing (no Blob store, no `SESSION_SECRET`, no
+   first-login variables). Variables only reach the environments they're ticked for (Production, Preview), and only
+   after a redeploy. The underlying error is also in Vercel's **Logs** for `/admin/login`.
 5. Point the domain: **Settings → Domains**, add `rapidselfstorage.com` and `www.rapidselfstorage.com`, and set the
    DNS records Vercel shows at the registrar. Only when the client approves the switch from the SiteGround WordPress site.
 

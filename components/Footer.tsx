@@ -1,9 +1,11 @@
-import { nav, site } from "@/lib/site";
+import type { ContactInfo } from "@/lib/content-schema";
+import { brand } from "@/lib/brand";
+import { gateHoursText, phoneHref } from "@/lib/format";
+import { nav } from "@/lib/nav";
 import { Icon } from "./Icon";
 import { Mark } from "./Mark";
 
-export function Footer() {
-  const year = new Date().getFullYear();
+export function Footer({ contact, year }: { contact: ContactInfo; year: number }) {
   return (
     <footer className="site-footer">
       <div className="wrap">
@@ -12,26 +14,28 @@ export function Footer() {
             <a className="brand" href="#top">
               <Mark />
               <span className="brand-text">
-                <span className="brand-name">{site.name}</span>
-                <span className="brand-sub">Tulare, California</span>
+                <span className="brand-name">{brand.name}</span>
+                <span className="brand-sub">{contact.city}, California</span>
               </span>
             </a>
-            <p>Drive-up self storage in Tulare, CA. A Mid Valley Storage family facility.</p>
-            <a className="social" href={site.instagram.url} target="_blank" rel="noopener noreferrer">
-              <Icon name="instagram" className="icon-sm" />
-              {site.instagram.handle}
-            </a>
+            <p>Drive-up self storage in {contact.city}, {contact.region}. A Mid Valley Storage family facility.</p>
+            {contact.instagramUrl && (
+              <a className="social" href={contact.instagramUrl} target="_blank" rel="noopener noreferrer">
+                <Icon name="instagram" className="icon-sm" />
+                {contact.instagramHandle || "Instagram"}
+              </a>
+            )}
           </div>
           <div className="foot-col">
             <h3>Visit</h3>
             <address>
-              <a href={site.mapsUrl} target="_blank" rel="noopener noreferrer">
-                {site.address.street}
+              <a href={contact.mapsUrl} target="_blank" rel="noopener noreferrer">
+                {contact.street}
                 <br />
-                {site.address.city}, {site.address.region} {site.address.postalCode}
+                {contact.city}, {contact.region} {contact.postalCode}
               </a>
               <br />
-              <a href={site.phoneHref}>{site.phoneDisplay}</a>
+              <a href={phoneHref(contact.phone)}>{contact.phone}</a>
             </address>
           </div>
           <div className="foot-col">
@@ -47,15 +51,15 @@ export function Footer() {
           <div className="foot-col">
             <h3>Tenants</h3>
             <ul>
-              <li><a href={site.payUrl}>Pay your bill</a></li>
-              <li><a href={site.reserveUrl}>Reserve a unit</a></li>
-              <li><a href={site.sisterLoginUrl}>Visalia locations login</a></li>
+              <li><a href={contact.payUrl}>Pay your bill</a></li>
+              <li><a href={contact.reserveUrl}>Reserve a unit</a></li>
+              {contact.sisterLoginUrl && <li><a href={contact.sisterLoginUrl}>Visalia locations login</a></li>}
             </ul>
           </div>
         </div>
         <div className="legal">
-          <span>© {year} {site.name}. All rights reserved.</span>
-          <span>Gate hours {site.gateHours}</span>
+          <span>© {year} {brand.name}. All rights reserved.</span>
+          <span>Gate hours {gateHoursText(contact)}</span>
         </div>
       </div>
     </footer>

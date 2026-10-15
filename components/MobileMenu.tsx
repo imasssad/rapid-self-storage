@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { nav, site } from "@/lib/site";
+import { nav } from "@/lib/nav";
 
-export function MobileMenu() {
+type Props = { payUrl: string; sisterLoginUrl: string; phone: string; phoneHref: string };
+
+export function MobileMenu({ payUrl, sisterLoginUrl, phone, phoneHref }: Props) {
   const ref = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
@@ -37,9 +39,9 @@ export function MobileMenu() {
           </a>
         ))}
         <hr />
-        <a href={site.payUrl}>Pay your bill</a>
-        <a href={site.sisterLoginUrl}>Visalia locations login</a>
-        <a href={site.phoneHref}>Call {site.phoneDisplay}</a>
+        <a href={payUrl}>Pay your bill</a>
+        {sisterLoginUrl && <a href={sisterLoginUrl}>Visalia locations login</a>}
+        <a href={phoneHref}>Call {phone}</a>
       </div>
     </details>
   );

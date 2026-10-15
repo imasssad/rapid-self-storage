@@ -1,25 +1,25 @@
+import type { ContactInfo, SiteContent } from "@/lib/content-schema";
+import { phoneHref } from "@/lib/format";
+import { PhoneText } from "./PhoneText";
 import { UnitPicker } from "./UnitPicker";
-import { site } from "@/lib/site";
 
-export function Units() {
+export function Units({ units, contact }: { units: SiteContent["units"]; contact: ContactInfo }) {
   return (
     <section className="section mist" id="units">
       <div className="wrap">
         <div className="section-head center" data-reveal>
           <p className="eyebrow">Unit sizes</p>
-          <h2>Pick a size and see the floor plan.</h2>
-          <p className="lede">
-            From small 5×5 to oversized 20×20, every plan is drawn on a one-foot grid so you can compare at a glance.
-            Not sure what fits? Our managers help people choose every day.
-          </p>
+          <h2>{units.heading}</h2>
+          {units.intro && <p className="lede">{units.intro}</p>}
         </div>
         <div data-reveal style={{ "--i": 1 } as React.CSSProperties}>
-          <UnitPicker />
+          <UnitPicker items={units.items} reserveUrl={contact.reserveUrl} phoneHref={phoneHref(contact.phone)} />
         </div>
-        <p className="picker-note">
-          Availability and rates change. Call <a className="text-link" href={site.phoneHref}>{site.phoneDisplay}</a>{" "}
-          for current pricing.
-        </p>
+        {units.note && (
+          <p className="picker-note">
+            <PhoneText text={units.note} phone={contact.phone} />
+          </p>
+        )}
       </div>
     </section>
   );

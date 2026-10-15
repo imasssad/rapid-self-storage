@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { contactLocations, site } from "@/lib/site";
 
 type State = { kind: "idle" | "sending" | "sent" | "error"; message: string };
 
-export function ContactForm() {
+type Props = { locations: { value: string; label: string }[]; phone: string };
+
+export function ContactForm({ locations, phone }: Props) {
   const [state, setState] = useState<State>({ kind: "idle", message: "" });
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -38,13 +39,13 @@ export function ContactForm() {
       } else {
         setState({
           kind: "error",
-          message: body.message ?? `The message didn't go through. Call ${site.phoneDisplay} to reach the office.`,
+          message: body.message ?? `The message didn't go through. Call ${phone} to reach the office.`,
         });
       }
     } catch {
       setState({
         kind: "error",
-        message: `The message didn't go through. Check your connection or call ${site.phoneDisplay}.`,
+        message: `The message didn't go through. Check your connection or call ${phone}.`,
       });
     }
   }
@@ -65,8 +66,8 @@ export function ContactForm() {
       </div>
       <div className="field full">
         <label htmlFor="f-location">Location</label>
-        <select id="f-location" name="location" defaultValue="tulare" required>
-          {contactLocations.map((l) => (
+        <select id="f-location" name="location" defaultValue={locations[0]?.value} required>
+          {locations.map((l) => (
             <option key={l.value} value={l.value}>
               {l.label}
             </option>

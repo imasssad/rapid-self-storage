@@ -1,19 +1,19 @@
-import { locations } from "@/lib/site";
+import type { SiteContent } from "@/lib/content-schema";
 import { Icon } from "./Icon";
 
-export function Locations() {
+export function Locations({ locations }: { locations: SiteContent["locations"] }) {
   return (
     <section className="section mist" id="locations">
       <div className="wrap">
         <div className="section-head center" data-reveal>
           <p className="eyebrow">Locations</p>
-          <h2>One family of facilities across Tulare and Visalia.</h2>
+          <h2>{locations.heading}</h2>
         </div>
         <ul className="places">
-          {locations.map((l, i) => (
+          {locations.items.map((l, i) => (
             <li
-              key={l.name}
-              className={l.primary ? "place is-home" : "place"}
+              key={i}
+              className={l.highlight ? "place is-home" : "place"}
               data-reveal
               style={{ "--i": i } as React.CSSProperties}
             >
@@ -21,13 +21,13 @@ export function Locations() {
                 <span className="icon-chip">
                   <Icon name="pin" />
                 </span>
-                {l.primary && <span className="tag">You are here</span>}
+                {l.highlight && <span className="tag">You are here</span>}
               </div>
               <h3>{l.name}</h3>
               <p className="where">{l.where}</p>
-              <p className="what">{l.what}</p>
-              <a className={l.primary ? "btn btn-light" : "btn btn-outline"} href={l.href}>
-                {l.cta}
+              <p className="what">{l.description}</p>
+              <a className={l.highlight ? "btn btn-light" : "btn btn-outline"} href={l.buttonUrl}>
+                {l.buttonLabel}
                 <Icon name="arrow" className="icon-arrow" />
               </a>
             </li>

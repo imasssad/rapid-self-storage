@@ -1,23 +1,25 @@
-import { faqs, site } from "@/lib/site";
+import type { ContactInfo, SiteContent } from "@/lib/content-schema";
+import { phoneHref } from "@/lib/format";
 import { Icon } from "./Icon";
 
-export function Faq() {
+export function Faq({ faq, contact }: { faq: SiteContent["home"]["faq"]; contact: ContactInfo }) {
+  if (!faq.items.length) return null;
   return (
     <section className="section" id="faq">
       <div className="wrap faq-grid">
         <div className="faq-intro" data-reveal>
           <p className="eyebrow">FAQ</p>
-          <h2>Questions, answered.</h2>
-          <p className="lede">Can&apos;t find what you need? Our managers are happy to help.</p>
-          <a className="btn btn-outline" href={site.phoneHref}>
+          <h2>{faq.heading}</h2>
+          {faq.intro && <p className="lede">{faq.intro}</p>}
+          <a className="btn btn-outline" href={phoneHref(contact.phone)}>
             <Icon name="phone" className="icon-sm" />
-            Call {site.phoneDisplay}
+            Call {contact.phone}
           </a>
         </div>
         <div className="faq-list">
-          {faqs.map((f, i) => (
+          {faq.items.map((f, i) => (
             <details
-              key={f.q}
+              key={i}
               name="faq"
               className="faq-item"
               open={i === 0}

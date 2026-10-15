@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
-import { site } from "@/lib/site";
+import { brand } from "@/lib/brand";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [{ url: site.url, changeFrequency: "monthly", priority: 1 }];
+  return [{ url: brand.url, changeFrequency: "monthly", priority: 1 }];
 }

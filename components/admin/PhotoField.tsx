@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { isPhotoType, MAX_PHOTO_BYTES, mediaPathFor } from "@/lib/media";
 import type { UploadMode } from "@/lib/media";
+import { Mark } from "@/components/Mark";
 
 type Photo = { src: string; alt: string; credit: string };
 type Props = {
@@ -15,6 +16,8 @@ type Props = {
   uploadMode: UploadMode;
   /** The photo as last saved; when it differs, this one is new and not saved yet. */
   savedSrc?: string;
+  /** A logo: may be empty (the standard logo), and has no description or credit of its own. */
+  logo?: boolean;
 };
 
 async function uploadPhoto(file: File, mode: UploadMode): Promise<string> {
@@ -42,7 +45,7 @@ async function uploadPhoto(file: File, mode: UploadMode): Promise<string> {
   return `/${json.pathname}`;
 }
 
-export function PhotoField({ id, label, help, value, onChange, errors, uploadMode, savedSrc }: Props) {
+export function PhotoField({ id, label, help, value, onChange, errors, uploadMode, savedSrc, logo = false }: Props) {
   const input = useRef<HTMLInputElement>(null);
   // The just-uploaded file, shown from this computer so it appears instantly.
   const [preview, setPreview] = useState<{ src: string; url: string } | null>(null);
@@ -75,9 +78,13 @@ export function PhotoField({ id, label, help, value, onChange, errors, uploadMod
       <legend>{label}</legend>
       {help && <p className="help">{help}</p>}
       <div className="photo-row">
-        <div className="photo-preview">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={shown} alt="" />
+        <div className={logo ? "photo-preview is-logo" : "photo-preview"}>
+          {shown ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={shown} alt="" />
+          ) : (
+            <Mark />
+          )}
           {unsaved && <span className="photo-badge">New, not saved yet</span>}
         </div>
         <div className="photo-controls">
@@ -90,9 +97,17 @@ export function PhotoField({ id, label, help, value, onChange, errors, uploadMod
             onChange={(e) => onFile(e.target.files?.[0])}
           />
           <label htmlFor={`${id}-file`} className={busy ? "btn-admin secondary is-busy" : "btn-admin secondary"} aria-disabled={busy}>
-            {busy ? "Uploading…" : "Choose a new photo"}
+            {busy ? "Uploading…" : logo ? "Choose a logo file" : "Choose a new photo"}
           </label>
-          {value.credit ? (
+          {logo ? (
+            value.src ? (
+              <button type="button" className="link-btn" onClick={() => onChange({ ...value, src: "" })}>
+                Use the standard logo instead
+              </button>
+            ) : (
+              <p className="help">This is the standard logo.</p>
+            )
+          ) : value.credit ? (
             <p className="help">Placeholder photo by {value.credit}. Upload your own to replace it.</p>
           ) : (
             <p className="help">Your photo.</p>
@@ -102,6 +117,7 @@ export function PhotoField({ id, label, help, value, onChange, errors, uploadMod
               {problem ?? errors.src}
             </p>
           )}
+          {!logo && (
           <div className="field">
             <label htmlFor={`${id}-alt`}>Describe the photo</label>
             <p className="help" id={`${id}-alt-help`}>
@@ -122,6 +138,7 @@ export function PhotoField({ id, label, help, value, onChange, errors, uploadMod
               </p>
             )}
           </div>
+          )}
         </div>
       </div>
     </fieldset>

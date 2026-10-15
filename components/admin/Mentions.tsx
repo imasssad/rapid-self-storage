@@ -13,7 +13,7 @@ const PHONE = /\(?\b\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/g;
 const HOURS = /\b\d{1,2}(:\d{2})?\s?(a\.?m\.?|p\.?m\.?)(?![a-z])|\b(days a week|seven days|7 days|every day|daily|365 days|weekends?|mondays?|tuesdays?|wednesdays?|thursdays?|fridays?|saturdays?|sundays?)\b/i;
 // Filled in from this screen automatically, or not words at all.
 const SKIP = new Set(["contact", "photos", "settings"]);
-const SKIP_KEYS = new Set(["id", "src", "alt", "credit", "buttonUrl", "icon"]);
+const SKIP_KEYS = new Set(["id", "src", "alt", "credit", "buttonUrl", "icon", "url", "to"]);
 
 function find(content: SiteContent): Mention[] {
   const own = phoneDigits(content.contact.phone);

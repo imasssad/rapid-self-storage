@@ -1,13 +1,14 @@
 "use client";
 
 import { useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
-import type { Unit } from "@/lib/content-schema";
+import type { ContactInfo, SiteButton as Button, Unit } from "@/lib/content-schema";
 import { formatPrice } from "@/lib/format";
 import { Icon } from "./Icon";
+import { SiteButton } from "./SiteButton";
 
-type Props = { items: Unit[]; reserveUrl: string; phoneHref: string };
+type Props = { items: Unit[]; button: Button; soldOutButton: Button; contact: ContactInfo };
 
-export function UnitPicker({ items, reserveUrl, phoneHref }: Props) {
+export function UnitPicker({ items, button, soldOutButton, contact }: Props) {
   const [index, setIndex] = useState(Math.min(2, items.length - 1));
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const unit = items[index];
@@ -86,15 +87,9 @@ export function UnitPicker({ items, reserveUrl, phoneHref }: Props) {
             </p>
           </div>
           {unit.soldOut ? (
-            <a className="btn btn-outline" href={phoneHref}>
-              <Icon name="phone" className="icon-sm" />
-              Join the waitlist (call)
-            </a>
+            <SiteButton button={soldOutButton} contact={contact} className="btn btn-outline" />
           ) : (
-            <a className="btn btn-blue" href={reserveUrl}>
-              Reserve this size
-              <Icon name="arrow" className="icon-arrow" />
-            </a>
+            <SiteButton button={button} contact={contact} className="btn btn-blue" arrow />
           )}
         </div>
       </div>

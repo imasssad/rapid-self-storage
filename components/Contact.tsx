@@ -2,6 +2,7 @@ import type { ContactInfo, SiteContent } from "@/lib/content-schema";
 import { gateHoursText, officeHoursLines, phoneHref } from "@/lib/format";
 import { ContactForm } from "./ContactForm";
 import { Icon } from "./Icon";
+import { SiteButton } from "./SiteButton";
 
 type Props = {
   section: SiteContent["home"]["contact"];
@@ -63,10 +64,7 @@ export function Contact({ section, contact, locations }: Props) {
               </li>
             )}
           </ul>
-          <a className="btn btn-outline" href={contact.mapsUrl} target="_blank" rel="noopener noreferrer">
-            <Icon name="map" className="icon-sm" />
-            Get directions
-          </a>
+          <SiteButton button={section.button} contact={contact} className="btn btn-outline" withNumber />
         </div>
         <div className="form-panel" data-reveal style={{ "--i": 1 } as React.CSSProperties}>
           <h3>Send a message</h3>

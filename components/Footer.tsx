@@ -1,22 +1,17 @@
-import type { ContactInfo } from "@/lib/content-schema";
-import { brand } from "@/lib/brand";
+import type { ContactInfo, SiteContent } from "@/lib/content-schema";
 import { gateHoursText, phoneHref } from "@/lib/format";
-import { nav } from "@/lib/nav";
+import { menuHref } from "@/lib/nav";
+import { Brand } from "./Brand";
 import { Icon } from "./Icon";
-import { Mark } from "./Mark";
 
-export function Footer({ contact, year }: { contact: ContactInfo; year: number }) {
+export function Footer({ contact, navbar, year }: { contact: ContactInfo; navbar: SiteContent["navbar"]; year: number }) {
   return (
     <footer className="site-footer">
       <div className="wrap">
         <div className="foot-grid">
           <div className="foot-brand">
             <a className="brand" href="#top">
-              <Mark />
-              <span className="brand-text">
-                <span className="brand-name">{brand.name}</span>
-                <span className="brand-sub">{contact.city}, California</span>
-              </span>
+              <Brand navbar={navbar} contact={contact} />
             </a>
             <p>Drive-up self storage in {contact.city}, {contact.region}. A Mid Valley Storage family facility.</p>
             {contact.instagramUrl && (
@@ -41,9 +36,9 @@ export function Footer({ contact, year }: { contact: ContactInfo; year: number }
           <div className="foot-col">
             <h3>Explore</h3>
             <ul>
-              {nav.map((n) => (
-                <li key={n.href}>
-                  <a href={n.href}>{n.label}</a>
+              {navbar.links.map((n, i) => (
+                <li key={i}>
+                  <a href={menuHref(n)}>{n.label}</a>
                 </li>
               ))}
             </ul>
@@ -58,7 +53,7 @@ export function Footer({ contact, year }: { contact: ContactInfo; year: number }
           </div>
         </div>
         <div className="legal">
-          <span>© {year} {brand.name}. All rights reserved.</span>
+          <span>© {year} {navbar.name}. All rights reserved.</span>
           <span>Gate hours {gateHoursText(contact)}</span>
         </div>
       </div>

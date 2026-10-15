@@ -52,6 +52,21 @@ Long lists (unit sizes, features, questions, reviews…) show each item's name; 
 The line above the preview tells you whether the special is showing now, starts on a later date, or has ended. To
 take it down, switch it off and save.
 
+## Change the menu bar, logo or a button
+
+**Menu bar & logo** is the bar at the top of every page:
+- **Logo and name:** upload your logo (a PNG with a see-through background works best), or keep the standard one;
+  change the business name and the small line under it.
+- **Menu links:** change their words, choose which part of the page each one jumps to (or any web address), put them
+  in a different order, add or remove links. The phone menu and the footer use the same links.
+- **Buttons:** the two buttons at the top right.
+- **Pay and Reserve links:** where every Pay and Reserve button on the site goes.
+
+Every other button is on the screen of the part it's in (for example the buttons under the headline are on **Top
+of the page**). For each button you choose the **Words on the button** and where it **Goes to**: your Reserve page,
+your Pay page, a call to your phone number, directions, a part of this page, or another web address. Buttons set to
+your Reserve or Pay page always follow the links saved here, so changing a link once updates every button.
+
 ## Change a price or mark a size sold out
 
 1. Choose **Unit sizes & prices**.
@@ -126,7 +141,7 @@ After five wrong passwords within 15 minutes, signing in is paused for 15 minute
 - **Reviews:** only add real reviews from real customers, with their permission. The reviews section appears on the
   website (between Locations and the FAQ) as soon as at least one review is switched on.
 - **Scrolling strip:** switch it off to hide it without losing its phrases.
-- Some words are fixed, such as button labels and the small blue labels above headings. Each screen's **Good to
-  know** line says what's fixed or set elsewhere.
+- A few words are fixed, such as the small blue labels above headings. Each screen's **Good to know** line says
+  what's fixed or set elsewhere.
 - **Contact form emails** (owners only): which email addresses receive messages from the website's contact form.
 - **Changing your password** under **Your account** signs you out on your other devices.

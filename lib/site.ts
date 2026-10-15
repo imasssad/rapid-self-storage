@@ -23,6 +23,23 @@ export const defaultContent: SiteContent = {
     endDate: "",
   },
 
+  navbar: {
+    logo: { src: "", alt: "", credit: "" },
+    name: "Rapid Self Storage",
+    tagline: "",
+    // The menu links point at the homepage's sections.
+    links: [
+      { label: "Unit sizes", to: "units", url: "" },
+      { label: "Features", to: "features", url: "" },
+      { label: "About", to: "story", url: "" },
+      { label: "Locations", to: "locations", url: "" },
+      { label: "FAQ", to: "faq", url: "" },
+      { label: "Contact", to: "visit", url: "" },
+    ],
+    secondButton: { label: "Pay bill", to: "pay", url: "" },
+    button: { label: "Reserve a unit", to: "reserve", url: "" },
+  },
+
   // TODO(confirm with Eric): the old site only states "5×5 to 20×20".
   // The in-between sizes are typical industry sizes, not confirmed inventory. Prices are left empty.
   units: {
@@ -30,6 +47,8 @@ export const defaultContent: SiteContent = {
     intro:
       "From small 5×5 to oversized 20×20, every plan is drawn on a one-foot grid so you can compare at a glance. Not sure what fits? Our managers help people choose every day.",
     note: "Availability and rates change. Call (559) 688-4787 for current pricing.",
+    button: { label: "Reserve this size", to: "reserve", url: "" },
+    soldOutButton: { label: "Join the waitlist (call)", to: "call", url: "" },
     items: [
       { id: "5x5", width: 5, depth: 5, name: "Small", description: "Holiday decorations, boxes and files.", price: null, soldOut: false },
       { id: "5x10", width: 5, depth: 10, name: "Small plus", description: "Boxes and small furniture from a bedroom.", price: null, soldOut: false },
@@ -71,6 +90,9 @@ export const defaultContent: SiteContent = {
       ],
       tenantTitle: "Already a tenant?",
       tenantText: "Log in to pay online, set up auto-pay or manage your unit.",
+      button: { label: "Reserve a unit", to: "reserve", url: "" },
+      secondButton: { label: "Find your size", to: "sizes", url: "" },
+      tenantButton: { label: "Customer login & pay", to: "pay", url: "" },
     },
     why: {
       heading: "Convenient, safe and affordable, right here in Tulare.",
@@ -106,6 +128,8 @@ export const defaultContent: SiteContent = {
           body: "Get your personal gate code, pull up to your door and unload. Storage should be simple.",
         },
       ],
+      button: { label: "Reserve a unit", to: "reserve", url: "" },
+      secondButton: { label: "Call", to: "call", url: "" },
     },
     features: {
       heading: "Built for getting in and out.",
@@ -206,15 +230,23 @@ export const defaultContent: SiteContent = {
           a: "Yes. The office has a complete moving supply center with boxes, tape and packing materials.",
         },
       ],
+      button: { label: "Call", to: "call", url: "" },
     },
     contact: {
       heading: "Visit the office or send us a note.",
       formIntro: "We reply during office hours. For anything urgent, call the office.",
+      button: { label: "Get directions", to: "directions", url: "" },
     },
     cta: {
       kicker: "Ready to get started?",
       heading: "Reserve your unit online in a few minutes.",
       text: "No deposit, month-to-month terms, and a gate code that is yours alone.",
+      button: { label: "Reserve now", to: "reserve", url: "" },
+      secondButton: { label: "Call", to: "call", url: "" },
+    },
+    mobileBar: {
+      secondButton: { label: "Call", to: "call", url: "" },
+      button: { label: "Reserve a unit", to: "reserve", url: "" },
     },
   },
 

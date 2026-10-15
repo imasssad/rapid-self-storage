@@ -40,7 +40,7 @@ function structuredData(c: SiteContent) {
   return {
     "@context": "https://schema.org",
     "@type": "SelfStorage",
-    name: brand.name,
+    name: c.navbar.name,
     url: brand.url,
     telephone: phoneE164Dashed(c.contact.phone),
     description: brand.description,
@@ -55,6 +55,7 @@ function structuredData(c: SiteContent) {
     hasMap: c.contact.mapsUrl,
     sameAs: c.contact.instagramUrl ? [c.contact.instagramUrl] : undefined,
     image: c.photos.hero.src.startsWith("/") ? `${brand.url}${c.photos.hero.src}` : c.photos.hero.src,
+    logo: c.navbar.logo.src ? `${brand.url}${c.navbar.logo.src}` : undefined,
     openingHoursSpecification: [
       ...office,
       {
@@ -86,7 +87,7 @@ export default async function Home() {
         Skip to content
       </a>
       <SpecialsBar specials={c.specials} now={now} reserveUrl={c.contact.reserveUrl} />
-      <Header contact={c.contact} />
+      <Header contact={c.contact} navbar={c.navbar} />
       <main id="top">
         <Hero hero={home.hero} highlights={home.highlights} contact={c.contact} photo={photos.hero} />
         <Highlights why={home.why} highlights={home.highlights} />
@@ -102,8 +103,8 @@ export default async function Home() {
         <Contact section={home.contact} contact={c.contact} locations={c.locations.items} />
         <CtaBand cta={home.cta} contact={c.contact} photo={photos.facility} />
       </main>
-      <Footer contact={c.contact} year={new Date(now).getFullYear()} />
-      <MobileCta contact={c.contact} />
+      <Footer contact={c.contact} navbar={c.navbar} year={new Date(now).getFullYear()} />
+      <MobileCta bar={home.mobileBar} contact={c.contact} />
       <EditBar />
       {/* Inside the page (not the root layout) so its effects run only after this page has hydrated. */}
       <Motion />

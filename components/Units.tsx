@@ -1,5 +1,4 @@
 import type { ContactInfo, SiteContent } from "@/lib/content-schema";
-import { phoneHref } from "@/lib/format";
 import { PhoneText } from "./PhoneText";
 import { UnitPicker } from "./UnitPicker";
 
@@ -13,7 +12,7 @@ export function Units({ units, contact }: { units: SiteContent["units"]; contact
           {units.intro && <p className="lede">{units.intro}</p>}
         </div>
         <div data-reveal style={{ "--i": 1 } as React.CSSProperties}>
-          <UnitPicker items={units.items} reserveUrl={contact.reserveUrl} phoneHref={phoneHref(contact.phone)} />
+          <UnitPicker items={units.items} button={units.button} soldOutButton={units.soldOutButton} contact={contact} />
         </div>
         {units.note && (
           <p className="picker-note">

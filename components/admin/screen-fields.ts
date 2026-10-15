@@ -39,7 +39,13 @@ export type Field =
   | { kind: "photo"; key: string; label: string; help?: string }
   | { kind: "week"; key: string; label: string; help?: string }
   /** Unit sizes as a table of prices and sold-out switches. */
-  | { kind: "unitTable"; key: string; label: string; help?: string };
+  | { kind: "unitTable"; key: string; label: string; help?: string }
+  /** "Goes to" for a menu link: a part of the homepage, or (with the web address in `urlKey`) any link. */
+  | { kind: "target"; key: string; label: string; help?: string; urlKey: string }
+  /** A logo upload; empty means the standard logo. */
+  | { kind: "logo"; key: string; label: string; help?: string }
+  /** A button's words and where it goes. `number`: a call button shows the phone number after the words. */
+  | { kind: "button"; key: string; label: string; help?: string; number?: boolean };
 
 /** A card of fields on a screen. `path` is where in the content its fields live. */
 export type Block = { path: string[]; title?: string; help?: string; fields: Field[] };
@@ -70,6 +76,7 @@ const iconLabels: Record<(typeof iconNames)[number], string> = {
 };
 
 const photoHelp = "JPG, PNG or WebP, up to 8 MB.";
+const button = (key: string, label: string, opts: { help?: string; number?: boolean } = {}): Field => ({ kind: "button", key, label, ...opts });
 
 export const screenBlocks: Record<ScreenKey, Block[]> = {
   specials: [
@@ -102,6 +109,54 @@ export const screenBlocks: Record<ScreenKey, Block[]> = {
     },
   ],
 
+  navbar: [
+    {
+      path: ["navbar"],
+      title: "Logo and name",
+      help: "Shown at the top left of every page and in the footer.",
+      fields: [
+        { kind: "logo", key: "logo", label: "Logo", help: "A PNG with a see-through background works best. It's shown about as tall as a line of big text." },
+        { kind: "text", key: "name", label: "Business name", max: 60 },
+        { kind: "text", key: "tagline", label: "Small line under the name (optional)", max: 60, help: "Leave it empty to show your city, for example “Tulare, California”." },
+      ],
+    },
+    {
+      path: ["navbar"],
+      title: "Menu links",
+      help: "Shown in this order in the menu bar, the phone menu and the footer. On a computer about six fit on one line.",
+      fields: [
+        {
+          kind: "list",
+          key: "links",
+          label: "Links",
+          itemName: "menu link",
+          max: 8,
+          itemTitle: (l, i) => String(l.label || `Link ${i + 1}`),
+          newItem: () => ({ label: "", to: "units", url: "" }),
+          fields: [
+            { kind: "text", key: "label", label: "Words in the menu", max: 30 },
+            { kind: "target", key: "to", label: "Goes to", urlKey: "url" },
+          ],
+        },
+      ],
+    },
+    {
+      path: ["navbar"],
+      title: "Buttons",
+      help: "At the top right, next to the menu. On phones only the right button shows; the phone menu has a “Pay your bill” link.",
+      fields: [button("secondButton", "Left button (outlined)"), button("button", "Right button (blue)")],
+    },
+    {
+      path: ["contact"],
+      title: "Pay and Reserve links",
+      help: "Every button set to “Your Pay page” or “Your Reserve page” goes to these, all over the site (the same links as on Hours, phone, address & links).",
+      fields: [
+        link("payUrl", "Pay / customer login link", "Your Storedge customer login page."),
+        link("reserveUrl", "Reserve link", "Your Quikstor reservation page."),
+      ],
+    },
+  ],
+
   hero: [
     {
       path: ["home", "hero"],
@@ -118,6 +173,11 @@ export const screenBlocks: Record<ScreenKey, Block[]> = {
         },
         { kind: "text", key: "intro", label: "Introduction", max: 400, multiline: true, help: "The paragraph under the headline." },
       ],
+    },
+    {
+      path: ["home", "hero"],
+      title: "Buttons under the introduction",
+      fields: [button("button", "First button (blue)"), button("secondButton", "Second button (see-through)")],
     },
     {
       path: ["photos"],
@@ -150,6 +210,7 @@ export const screenBlocks: Record<ScreenKey, Block[]> = {
       fields: [
         { kind: "text", key: "tenantTitle", label: "Heading", max: 40 },
         { kind: "text", key: "tenantText", label: "Text", max: 160 },
+        button("tenantButton", "Button in the box"),
       ],
     },
   ],
@@ -197,6 +258,12 @@ export const screenBlocks: Record<ScreenKey, Block[]> = {
           help: "Whole dollars. Leave a price empty to show “Call for price”. A sold-out size is shown dimmed with a “Join the waitlist (call)” button.",
         },
       ],
+    },
+    {
+      path: ["units"],
+      title: "Buttons under the floor plan",
+      help: "The picker shows one of these, depending on whether the chosen size is sold out.",
+      fields: [button("button", "Button for a size you can rent"), button("soldOutButton", "Button for a sold-out size")],
     },
     {
       path: ["units"],
@@ -270,6 +337,11 @@ export const screenBlocks: Record<ScreenKey, Block[]> = {
           ],
         },
       ],
+    },
+    {
+      path: ["home", "steps"],
+      title: "Buttons under the steps",
+      fields: [button("button", "First button (blue)", { number: true }), button("secondButton", "Second button (outlined)", { number: true })],
     },
   ],
 
@@ -469,6 +541,7 @@ export const screenBlocks: Record<ScreenKey, Block[]> = {
       fields: [
         { kind: "text", key: "heading", label: "Heading", max: 120 },
         { kind: "text", key: "intro", label: "Text under the heading", max: 200 },
+        button("button", "Button under that text", { number: true }),
         {
           kind: "list",
           key: "items",
@@ -497,6 +570,11 @@ export const screenBlocks: Record<ScreenKey, Block[]> = {
         { kind: "text", key: "heading", label: "Heading", max: 120 },
         { kind: "text", key: "text", label: "Text", max: 240 },
       ],
+    },
+    {
+      path: ["home", "cta"],
+      title: "Buttons",
+      fields: [button("button", "First button (white)", { number: true }), button("secondButton", "Second button (see-through)", { number: true })],
     },
     {
       path: ["photos"],
@@ -553,11 +631,18 @@ export const screenBlocks: Record<ScreenKey, Block[]> = {
     },
     {
       path: ["home", "contact"],
-      title: "Contact section text",
+      title: "Contact section",
       fields: [
         { kind: "text", key: "heading", label: "Heading", max: 120 },
         { kind: "text", key: "formIntro", label: "Line under “Send a message”", max: 200 },
+        button("button", "Button under the address", { number: true }),
       ],
+    },
+    {
+      path: ["home", "mobileBar"],
+      title: "Bar at the bottom of phones",
+      help: "On phones, this bar slides up once visitors scroll past the top of the page.",
+      fields: [button("secondButton", "Left button (outlined)"), button("button", "Right button (blue)")],
     },
   ],
 

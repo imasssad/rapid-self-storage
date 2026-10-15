@@ -1,18 +1,12 @@
-import type { ContactInfo } from "@/lib/content-schema";
-import { phoneHref } from "@/lib/format";
-import { Icon } from "./Icon";
+import type { ContactInfo, SiteContent } from "@/lib/content-schema";
+import { SiteButton } from "./SiteButton";
 
 // Phone-only call/reserve bar. It slides in once the hero is scrolled past (data-past-hero, set by Motion).
-export function MobileCta({ contact }: { contact: ContactInfo }) {
+export function MobileCta({ bar, contact }: { bar: SiteContent["home"]["mobileBar"]; contact: ContactInfo }) {
   return (
     <div className="mobile-cta">
-      <a className="btn btn-outline" href={phoneHref(contact.phone)}>
-        <Icon name="phone" className="icon-sm" />
-        Call
-      </a>
-      <a className="btn btn-blue" href={contact.reserveUrl}>
-        Reserve a unit
-      </a>
+      <SiteButton button={bar.secondButton} contact={contact} className="btn btn-outline" />
+      <SiteButton button={bar.button} contact={contact} className="btn btn-blue" />
     </div>
   );
 }

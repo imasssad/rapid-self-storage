@@ -14,6 +14,7 @@ import { Hero } from "@/components/Hero";
 import { Highlights } from "@/components/Highlights";
 import { Locations } from "@/components/Locations";
 import { Marquee } from "@/components/Marquee";
+import { MobileCta } from "@/components/MobileCta";
 import { Reviews } from "@/components/Reviews";
 import { Security } from "@/components/Security";
 import { SpecialsBar } from "@/components/SpecialsBar";
@@ -47,7 +48,7 @@ const parts: Part[] = [
       return specialsActive(c.specials, now) ? null : "The special offer bar isn't showing right now.";
     },
   },
-  { id: "header", screen: "contact", render: ({ c }) => <Header contact={c.contact} /> },
+  { id: "header", screen: "navbar", render: ({ c }) => <Header contact={c.contact} navbar={c.navbar} /> },
   {
     id: "hero",
     screen: "hero",
@@ -85,13 +86,24 @@ const parts: Part[] = [
     render: ({ c }) => <Contact section={c.home.contact} contact={c.contact} locations={c.locations.items} />,
   },
   { id: "cta", screen: "cta", render: ({ c }) => <CtaBand cta={c.home.cta} contact={c.contact} photo={c.photos.facility} /> },
-  { id: "footer", screen: "contact", render: ({ c, now }) => <Footer contact={c.contact} year={new Date(now).getFullYear()} /> },
+  { id: "footer", screen: "contact", render: ({ c, now }) => <Footer contact={c.contact} navbar={c.navbar} year={new Date(now).getFullYear()} /> },
+  // Only on phones, fixed to the bottom of the screen; the preview draws it in place.
+  {
+    id: "mobilebar",
+    screen: "contact",
+    render: ({ c }) => (
+      <div className="preview-mobilebar">
+        <MobileCta bar={c.home.mobileBar} contact={c.contact} />
+      </div>
+    ),
+  },
 ];
 
 /** Which parts each screen's preview shows. */
 const shown: Record<PreviewTarget, string[]> = {
   all: parts.map((p) => p.id),
   specials: ["specials", "header"],
+  navbar: ["header"],
   hero: ["hero"],
   why: ["why"],
   units: ["units"],
@@ -104,7 +116,7 @@ const shown: Record<PreviewTarget, string[]> = {
   reviews: ["reviews"],
   faq: ["faq"],
   cta: ["cta"],
-  contact: ["header", "contact", "footer"],
+  contact: ["header", "contact", "footer", "mobilebar"],
   photos: ["hero", "features", "security", "cta"],
   settings: [],
 };

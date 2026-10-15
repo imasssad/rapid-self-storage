@@ -115,6 +115,9 @@ replaced photo is deleted once no saved version uses it any more (so going back 
    `lib/screens.ts`. Field kinds are rendered by `components/admin/fields.tsx`.
 4. **Component:** read it from props in the public component, passed down from `app/page.tsx`.
 
+Buttons are `{ label, to, url }` (`buttonSchema`); render them with `components/SiteButton.tsx`, which resolves
+`to` against the shared Reserve / Pay links, phone and map link, and describe them with the `button` field kind.
+
 Run `npm run build`; the types will point at anything you missed.
 
 ### Back up the content
@@ -131,7 +134,7 @@ From a terminal with the token (`vercel env pull`), any script using `@vercel/bl
 | `components/` | One file per public section; all take content as props |
 | `app/admin/` | Admin panel: `login/`, `(panel)/` screens, `actions.ts` (every Server Action), `admin.css` |
 | `components/admin/` | Admin UI: `screen-fields.ts` (fields per screen), `ScreenEditor.tsx`, `fields.tsx`, `PreviewFrame.tsx` / `PreviewCanvas.tsx` (live preview), `HomeMap.tsx`, `FindBox.tsx` (search), `Mentions.tsx`, `PhotoField.tsx`, people, history |
-| `lib/` | `content-schema.ts`, `screens.ts` (admin screens), `content.ts`, `diff.ts`, `storage.ts`, `auth.ts`, `session-token.ts`, `editor-hint.ts`, `media.ts`, `format.ts`, `site.ts` (defaults), `brand.ts`, `nav.ts` |
+| `lib/` | `content-schema.ts`, `screens.ts` (admin screens), `content.ts`, `diff.ts`, `storage.ts`, `auth.ts`, `session-token.ts`, `editor-hint.ts`, `media.ts`, `format.ts`, `site.ts` (defaults), `brand.ts` (SEO name and URL), `nav.ts` (menu link targets) |
 | `proxy.ts` | Session check in front of `/admin` and `/api/admin` |
 | `app/media/[...path]/route.ts` | Serves uploaded photos from the private store |
 | `app/api/contact/route.ts` | Contact form email through Resend, with a hidden spam trap |

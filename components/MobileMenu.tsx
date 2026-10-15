@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { nav } from "@/lib/nav";
+import { menuHref, type MenuLink } from "@/lib/nav";
 
-type Props = { payUrl: string; sisterLoginUrl: string; phone: string; phoneHref: string };
+type Props = { links: MenuLink[]; payUrl: string; sisterLoginUrl: string; phone: string; phoneHref: string };
 
-export function MobileMenu({ payUrl, sisterLoginUrl, phone, phoneHref }: Props) {
+export function MobileMenu({ links, payUrl, sisterLoginUrl, phone, phoneHref }: Props) {
   const ref = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
@@ -33,8 +33,8 @@ export function MobileMenu({ payUrl, sisterLoginUrl, phone, phoneHref }: Props) 
         </span>
       </summary>
       <div className="menu-panel">
-        {nav.map((n) => (
-          <a key={n.href} href={n.href} onClick={() => ref.current && (ref.current.open = false)}>
+        {links.map((n, i) => (
+          <a key={i} href={menuHref(n)} onClick={() => ref.current && (ref.current.open = false)}>
             {n.label}
           </a>
         ))}

@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { ContactInfo, IconName, Photo, SiteContent } from "@/lib/content-schema";
 import { gateHoursShort } from "@/lib/format";
 import { Icon } from "./Icon";
+import { SiteButton } from "./SiteButton";
 
 type Props = {
   hero: SiteContent["home"]["hero"];
@@ -42,13 +43,8 @@ export function Hero({ hero, highlights, contact, photo }: Props) {
               </h1>
               <p className="hero-lede">{hero.intro}</p>
               <div className="actions">
-                <a className="btn btn-blue btn-lg" href={contact.reserveUrl}>
-                  Reserve a unit
-                  <Icon name="arrow" className="icon-arrow" />
-                </a>
-                <a className="btn btn-ghost-light btn-lg" href="#units">
-                  Find your size
-                </a>
+                <SiteButton button={hero.button} contact={contact} className="btn btn-blue btn-lg" arrow />
+                <SiteButton button={hero.secondButton} contact={contact} className="btn btn-ghost-light btn-lg" />
               </div>
             </div>
 
@@ -60,10 +56,7 @@ export function Hero({ hero, highlights, contact, photo }: Props) {
                 {hero.tenantTitle}
               </p>
               <p>{hero.tenantText}</p>
-              <a className="btn btn-light" href={contact.payUrl}>
-                Customer login &amp; pay
-                <Icon name="arrow" className="icon-arrow" />
-              </a>
+              <SiteButton button={hero.tenantButton} contact={contact} className="btn btn-light" arrow />
             </aside>
           </div>
           {photo.credit && <span className="credit">Photo: {photo.credit}</span>}

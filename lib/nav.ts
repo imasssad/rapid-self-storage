@@ -1,9 +1,7 @@
-// In-page navigation. The targets are section ids on the home page, so this isn't editable content.
-export const nav = [
-  { href: "#units", label: "Unit sizes" },
-  { href: "#features", label: "Features" },
-  { href: "#story", label: "About" },
-  { href: "#locations", label: "Locations" },
-  { href: "#faq", label: "FAQ" },
-  { href: "#visit", label: "Contact" },
-];
+// Menu links are edited in the admin panel (navbar.links). Each goes to a section of the homepage by its id,
+// or to any web address.
+import type { SiteContent } from "./content-schema";
+
+export type MenuLink = SiteContent["navbar"]["links"][number];
+
+export const menuHref = (link: MenuLink) => (link.to === "link" ? link.url : `#${link.to}`);

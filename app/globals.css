@@ -186,6 +186,7 @@ html[data-scrolled] .bar { padding-block: 0.6rem; }
 
 .brand { display: inline-flex; align-items: center; gap: 0.7rem; margin-right: auto; text-decoration: none; line-height: 1; }
 .brand svg { width: 40px; height: 40px; flex: none; transition: rotate 0.5s var(--ease-out); }
+.brand-logo { display: block; flex: none; width: auto; max-width: 9rem; height: 40px; object-fit: contain; }
 .brand:hover svg { rotate: -8deg; }
 .brand-text { display: grid; gap: 0.2rem; }
 .brand-name { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em; }
@@ -705,6 +706,7 @@ html[data-scrolled] .bar { padding-block: 0.6rem; }
   .bar { flex-wrap: nowrap; gap: 0.6rem; }
   .brand { gap: 0.55rem; min-width: 0; }
   .brand svg { width: 34px; height: 34px; }
+  .brand-logo { height: 34px; max-width: 7rem; }
   .brand-name { font-size: 1.05rem; }
   .brand-sub { display: none; }
   .header-actions .btn-outline { display: none; }

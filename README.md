@@ -36,6 +36,12 @@ run `vercel env pull .env.local` (this brings down `BLOB_READ_WRITE_TOKEN`); be 
 5. Point the domain: **Settings → Domains**, add `rapidselfstorage.com` and `www.rapidselfstorage.com`, and set the
    DNS records Vercel shows at the registrar. Only when the client approves the switch from the SiteGround WordPress site.
 
+Every push to `main` (including a merged pull request) deploys to production; every other branch gets a preview.
+If a merge doesn't start a production deployment, open **Deployments → Create Deployment**, pick the `main` branch
+and create it. Use that rather than promoting a preview, because previews are built with the Preview environment
+variables (`SESSION_SECRET` and the `ADMIN_*` variables may be set for Production only). If it keeps happening,
+check **Settings → Git**: the production branch is `main` and **Ignored Build Step** is **Automatic**.
+
 | Variable | Purpose |
 | --- | --- |
 | `BLOB_READ_WRITE_TOKEN` or `BLOB_STORE_ID` | Added automatically when the Blob store is connected: the token, or (newer Vercel) `BLOB_STORE_ID` with Vercel OIDC. Either works for everything, photo uploads included. |

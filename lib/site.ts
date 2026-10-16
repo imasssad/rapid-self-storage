@@ -4,8 +4,10 @@
 // No made-up facts: prices, office hours and reviews are left empty until the owner fills them in.
 import type { SiteContent } from "./content-schema";
 
+// Every "Pay your bill" link and button uses this one value (as confirmed by the client), through contact.payUrl
+// or a button set to "Your Pay page".
 const payUrl =
-  "https://rental-center.storedge.com/?companyId=ee6dd943-e3a5-49c9-af42-8bc54fe490cc&facilityId=f09f5cd3-ddb3-448e-89a4-961373ade47f#/login";
+  "https://rental-center.storedge.com?companyId=ee6dd943-e3a5-49c9-af42-8bc54fe490cc&facilityId=f09f5cd3-ddb3-448e-89a4-961373ade47f#/login";
 const sisterLoginUrl = "https://ecom.quikstor.com/midvalleystorage/Account/Login";
 
 const closedDay = { open: false, opens: "09:00", closes: "17:00" };

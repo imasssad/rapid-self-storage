@@ -126,6 +126,14 @@ In Vercel, open **Storage**, then the Blob store, and download `content/site.jso
 From a terminal with the token (`vercel env pull`), any script using `@vercel/blob`'s `get()` with
 `access: "private"` works too. The admin panel's change history already keeps the last 20 saves.
 
+### Change the live saved content from a script
+
+Once the owner has saved anything, the live site reads `content/site.json` from the Blob store, so changing a
+default in `lib/site.ts` doesn't change what visitors see. `scripts/update-live-content.ts` is an example of a
+one-off update that goes through the app's own storage code: it prints the exact before/after first, and with
+`--write` it snapshots the current content to version history before changing only the fields it lists. The usage
+is at the top of the file.
+
 ## What's where
 
 | Path | What |
@@ -141,7 +149,8 @@ From a terminal with the token (`vercel env pull`), any script using `@vercel/bl
 | `app/employee/page.tsx` | The old site's staff schedule (Google Calendar embed). Not linked anywhere and `noindex` |
 | `next.config.ts` | Cache Components, image sources, 308 redirects from the old WordPress URLs |
 
-Payments and reservations stay on the existing Storedge and Quikstor portals; the site only links to them.
+Payments, logins and online move-ins stay on the business's Storedge rental center; the site only links to it
+(the exact links are at the top of `lib/site.ts`).
 
 ## Before launch, confirm with the client
 

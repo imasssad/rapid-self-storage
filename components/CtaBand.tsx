@@ -9,7 +9,7 @@ export function CtaBand({ cta, contact, photo }: Props) {
     <section className="cta" id="reserve" aria-labelledby="cta-title">
       <div className="wrap">
         <div className="cta-frame" data-reveal="zoom">
-          <Image src={photo.src} alt="" fill sizes="(max-width: 1416px) 100vw, 1320px" />
+          <Image src={photo.src} alt={photo.alt} fill sizes="(max-width: 1416px) 100vw, 1320px" />
           <div className="cta-shade" aria-hidden="true" />
           <div className="cta-glow" aria-hidden="true" />
           <div className="cta-inner">

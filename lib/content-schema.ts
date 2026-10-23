@@ -109,7 +109,6 @@ export const contactSchema = z
     officeHours: z.array(dayHoursSchema).length(7),
     payUrl: link,
     reserveUrl: link,
-    sisterLoginUrl: optionalLink,
     instagramUrl: optionalLink,
     instagramHandle: text(40),
   })

@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { menuHref, type MenuLink } from "@/lib/nav";
+import type { SiteContent } from "@/lib/content-schema";
+import { externalLinkProps } from "@/lib/links";
+import { menuHref, otherLocationLogins, type MenuLink } from "@/lib/nav";
 
-type Props = { links: MenuLink[]; payUrl: string; sisterLoginUrl: string; phone: string; phoneHref: string };
+type Props = { links: MenuLink[]; payUrl: string; locations: SiteContent["locations"]["items"]; phone: string; phoneHref: string };
 
-export function MobileMenu({ links, payUrl, sisterLoginUrl, phone, phoneHref }: Props) {
+export function MobileMenu({ links, payUrl, locations, phone, phoneHref }: Props) {
   const ref = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
@@ -34,13 +36,19 @@ export function MobileMenu({ links, payUrl, sisterLoginUrl, phone, phoneHref }: 
       </summary>
       <div className="menu-panel">
         {links.map((n, i) => (
-          <a key={i} href={menuHref(n)} onClick={() => ref.current && (ref.current.open = false)}>
+          <a key={i} href={menuHref(n)} {...externalLinkProps(menuHref(n))} onClick={() => ref.current && (ref.current.open = false)}>
             {n.label}
           </a>
         ))}
         <hr />
-        <a href={payUrl}>Pay your bill</a>
-        {sisterLoginUrl && <a href={sisterLoginUrl}>Visalia locations login</a>}
+        <a href={payUrl} {...externalLinkProps(payUrl)}>
+          Pay your bill
+        </a>
+        {otherLocationLogins(locations).map((l) => (
+          <a key={l.href} href={l.href} {...externalLinkProps(l.href)}>
+            {l.label}
+          </a>
+        ))}
         <a href={phoneHref}>Call {phone}</a>
       </div>
     </details>

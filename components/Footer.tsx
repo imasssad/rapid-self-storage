@@ -1,10 +1,13 @@
 import type { ContactInfo, SiteContent } from "@/lib/content-schema";
 import { gateHoursText, phoneHref } from "@/lib/format";
-import { menuHref } from "@/lib/nav";
+import { externalLinkProps } from "@/lib/links";
+import { menuHref, otherLocationLogins } from "@/lib/nav";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
 
-export function Footer({ contact, navbar, year }: { contact: ContactInfo; navbar: SiteContent["navbar"]; year: number }) {
+type Props = { contact: ContactInfo; navbar: SiteContent["navbar"]; locations: SiteContent["locations"]["items"]; year: number };
+
+export function Footer({ contact, navbar, locations, year }: Props) {
   return (
     <footer className="site-footer">
       <div className="wrap">
@@ -38,7 +41,9 @@ export function Footer({ contact, navbar, year }: { contact: ContactInfo; navbar
             <ul>
               {navbar.links.map((n, i) => (
                 <li key={i}>
-                  <a href={menuHref(n)}>{n.label}</a>
+                  <a href={menuHref(n)} {...externalLinkProps(menuHref(n))}>
+                    {n.label}
+                  </a>
                 </li>
               ))}
             </ul>
@@ -46,9 +51,24 @@ export function Footer({ contact, navbar, year }: { contact: ContactInfo; navbar
           <div className="foot-col">
             <h3>Tenants</h3>
             <ul>
-              <li><a href={contact.payUrl}>Pay your bill</a></li>
-              <li><a href={contact.reserveUrl}>Reserve a unit</a></li>
-              {contact.sisterLoginUrl && <li><a href={contact.sisterLoginUrl}>Visalia locations login</a></li>}
+              <li>
+                <a href={contact.payUrl} {...externalLinkProps(contact.payUrl)}>
+                  Pay your bill
+                </a>
+              </li>
+              <li>
+                <a href={contact.reserveUrl} {...externalLinkProps(contact.reserveUrl)}>
+                  Reserve a unit
+                </a>
+              </li>
+              {/* One login link per sister location, from its card in Locations. */}
+              {otherLocationLogins(locations).map((l) => (
+                <li key={l.href}>
+                  <a href={l.href} {...externalLinkProps(l.href)}>
+                    {l.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

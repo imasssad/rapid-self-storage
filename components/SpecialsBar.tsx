@@ -1,5 +1,6 @@
 import type { Specials } from "@/lib/content-schema";
 import { specialsActive, specialsWindow } from "@/lib/format";
+import { externalLinkProps } from "@/lib/links";
 import { Icon } from "./Icon";
 
 // The page is cached for up to an hour, so the server's on/off decision can be slightly stale around midnight.
@@ -34,7 +35,7 @@ export function SpecialsBar({ specials, now, reserveUrl, preview = false }: { sp
             {specials.text && <span> {specials.text}</span>}
           </p>
           {specials.buttonLabel && (specials.buttonUrl || reserveUrl) && (
-            <a className="specials-link" href={specials.buttonUrl || reserveUrl}>
+            <a className="specials-link" href={specials.buttonUrl || reserveUrl} {...externalLinkProps(specials.buttonUrl || reserveUrl)}>
               {specials.buttonLabel}
               <Icon name="arrow" className="icon-xs" />
             </a>

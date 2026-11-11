@@ -131,13 +131,17 @@ export async function clearFailures(email: string): Promise<void> {
 
 export async function startSession(user: StoredUser): Promise<void> {
   const token = await signSession({ email: user.email, role: user.role, sv: user.sv });
-  (await cookies()).set(SESSION_COOKIE, token, {
+  const jar = await cookies();
+  jar.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: true,
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_MAX_AGE,
   });
+  // Set right away too (proxy.ts keeps it in step afterwards), so the website shows the "Edit this part" bar
+  // even when the website is opened straight after signing in.
+  jar.set(EDITOR_HINT_COOKIE, "1", { secure: true, sameSite: "lax", path: "/", maxAge: SESSION_MAX_AGE });
 }
 
 export async function endSession(): Promise<void> {

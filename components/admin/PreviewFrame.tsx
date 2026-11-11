@@ -53,6 +53,8 @@ export function PreviewFrame({ target, content, title, device = "computer", over
       if (d?.type === PREVIEW_MSG.layout) setLayout({ height: d.height, zones: d.zones });
     };
     window.addEventListener("message", onMessage);
+    // The frame may have started before this listener existed; ask it to say ready again.
+    frame.current?.contentWindow?.postMessage({ type: PREVIEW_MSG.hello }, location.origin);
     return () => window.removeEventListener("message", onMessage);
   }, []);
 

@@ -148,7 +148,15 @@ export function UsersManager({ people, me }: { people: Person[]; me: string }) {
         ))}
       </ul>
 
-      {added && <Handover person={added} onDone={() => setAdded(null)} />}
+      {added && (
+        <Handover
+          person={added}
+          onDone={() => {
+            setAdded(null);
+            document.getElementById("new-name")?.focus();
+          }}
+        />
+      )}
       <form className="group add-person" onSubmit={onAdd} noValidate>
         <h2>Add a person</h2>
         <p className="help">They sign in at this same address with their email and the temporary password you give them, then change it under Your account.</p>

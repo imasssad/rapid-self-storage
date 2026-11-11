@@ -25,7 +25,8 @@ export function HomeMap({ content }: { content: SiteContent }) {
 
   return (
     <div className="home-map">
-      <div ref={box} className="map-box" onMouseLeave={() => setActive(null)}>
+      {/* Mouse only: the numbered list beside it is the way in for keyboard and screen readers. */}
+      <div ref={box} className="map-box" tabIndex={-1} onMouseLeave={() => setActive(null)}>
         <PreviewFrame
           target="all"
           content={content}
@@ -37,11 +38,13 @@ export function HomeMap({ content }: { content: SiteContent }) {
             list.map((z) => {
               const n = numberOf(z.screen);
               const label = n ? `${n}. ${screens[z.screen].title}` : screens[z.screen].title;
+              // A thin part (the special offer bar) gets its label on the right, above the next part's label.
+              const short = z.height * scale < 28;
               return (
                 <a
                   key={z.part}
                   href={`/admin/${z.screen}`}
-                  className={active === z.screen ? "map-zone is-active" : "map-zone"}
+                  className={["map-zone", active === z.screen && "is-active", short && "is-short"].filter(Boolean).join(" ")}
                   style={{ top: z.top * scale, height: z.height * scale }}
                   onMouseEnter={() => setActive(z.screen)}
                   tabIndex={-1}

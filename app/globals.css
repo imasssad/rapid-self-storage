@@ -606,6 +606,8 @@ html[data-scrolled] .bar { padding-block: 0.6rem; }
 .edit-bar-home { border-left: 1px solid rgba(255, 255, 255, 0.2); border-radius: 0 999px 999px 0; color: rgba(255, 255, 255, 0.75) !important; }
 .edit-bar a:hover { background: rgba(255, 255, 255, 0.1); }
 .edit-bar .icon-xs { color: var(--sky); flex: none; }
+/* Room under the footer so the bar never hides its last line. */
+body:has(.edit-bar) .site-footer { padding-bottom: 5rem; }
 
 .skip { position: absolute; left: -9999px; top: 0; z-index: 60; padding: 0.6rem 1rem; background: var(--blue); color: #fff; font-weight: 600; border-radius: var(--radius-sm); }
 .skip:focus { left: 16px; top: 8px; }
@@ -741,5 +743,6 @@ html[data-scrolled] .bar { padding-block: 0.6rem; }
   }
   html[data-past-hero] .mobile-cta { transform: none; visibility: visible; transition: transform 0.45s var(--ease-out); }
   html[data-past-hero] .edit-bar { bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px)); }
+  body:has(.edit-bar) .site-footer { padding-bottom: calc(2rem + 4.75rem + 3.5rem); }
   .site-footer { padding-bottom: calc(2rem + 4.75rem); }
 }

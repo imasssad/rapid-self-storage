@@ -105,7 +105,9 @@ Right after saving, choose **Undo this save** next to the "Saved" message.
 For anything older, choose **Change history & undo**. It lists the last 20 saves with who saved, when, and what
 changed (for example "Top of the page: Headline, Introduction").
 
-- **Undo this change** puts back only what that one save changed. Everything else stays as it is.
+- **Undo this change** puts back only what that one save changed. Everything else stays as it is. If someone
+  changed the same part again later (or moved items in that list), it says so instead of guessing; use **Go back
+  to this version** on the save before it.
 - **Go back to this version** makes the whole website look exactly as it did right after that save, which also
   undoes every change saved after it.
 

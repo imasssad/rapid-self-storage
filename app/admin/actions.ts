@@ -33,8 +33,11 @@ import bcrypt from "bcryptjs";
 /** `conflict`: someone else saved this part after it was opened (see saveScreen). */
 type Failure = { ok: false; error: string; fieldErrors?: Record<string, string>; conflict?: boolean };
 export type ActionResult = { ok: true; message?: string } | Failure;
-/** A saved screen returns the values as stored, so the editor shows exactly what the website now uses. */
-export type SaveResult = { ok: true; values: unknown[] } | Failure;
+/**
+ * A saved screen returns the values as stored, so the editor shows exactly what the website now uses, and what
+ * was stored just before (which "Undo this save" puts back, even if that was someone else's save).
+ */
+export type SaveResult = { ok: true; values: unknown[]; previous: unknown[] } | Failure;
 
 const fail = (error: string, errors?: Record<string, string>): Failure => ({ ok: false, error, fieldErrors: errors });
 
@@ -110,13 +113,16 @@ export async function saveScreen(screen: string, values: unknown[], base?: unkno
     if (!Array.isArray(values) || values.length !== def.scopes.length) return fail("Something went wrong and nothing was saved. Reload the page and try again.");
 
     const current = await readContent();
-    if (!force && Array.isArray(base) && JSON.stringify(def.scopes.map((p) => getAt(current, p))) !== JSON.stringify(base)) {
-      const [latest] = await listHistory();
-      const who = latest && latest.savedBy.email !== user.email ? latest.savedBy.name || latest.savedBy.email : "Someone";
+    const previous = def.scopes.map((p) => getAt(current, p));
+    if (!force && Array.isArray(base) && JSON.stringify(previous) !== JSON.stringify(base)) {
+      // Name the latest save that touched this screen's parts, not just the latest save anywhere.
+      const overlaps = (c: (string | number)[]) => def.scopes.some((s) => s.every((k, i) => c[i] === k) || c.every((k, i) => s[i] === k));
+      const latest = (await listHistory()).find((h) => h.changes?.some(overlaps));
+      const who = latest ? (latest.savedBy.email === user.email ? "You" : latest.savedBy.name || latest.savedBy.email) : "Someone";
       return {
         ok: false,
         conflict: true,
-        error: `${who} saved changes to this part of the website${latest ? ` at ${when(latest.savedAt)}` : ""}, after you opened it. Saving now would replace their changes.`,
+        error: `${who} saved changes to this part of the website${latest ? ` at ${when(latest.savedAt)}` : ""}, after you opened it${latest?.savedBy.email === user.email ? " here" : ""}. Saving now would replace those changes.`,
       };
     }
     let next = def.scopes.reduce((c, path, i) => setAt(c, path, values[i]), current);
@@ -142,10 +148,11 @@ export async function saveScreen(screen: string, values: unknown[], base?: unkno
       next = { ...next, photos };
     }
 
-    if (!changedPaths(current, next).length) return { ok: true, values: def.scopes.map((p) => getAt(next, p)) };
+    const stored = def.scopes.map((p) => getAt(next, p));
+    if (!changedPaths(current, next).length) return { ok: true, values: stored, previous };
     await saveContent(next, { by: { email: user.email, name: user.name }, section: screen });
     updateTag(CONTENT_TAG);
-    return { ok: true, values: def.scopes.map((p) => getAt(next, p)) };
+    return { ok: true, values: stored, previous };
   });
 }
 
@@ -164,6 +171,33 @@ export async function restoreVersion(id: string): Promise<ActionResult> {
   });
 }
 
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+/**
+ * True when `path` in `current` still holds what the save left (`after`), and every list along the path still has
+ * the same items in the same places: same length, and the same item at that position (by id, or else by everything
+ * except the field being undone).
+ */
+function untouchedSince(current: unknown, after: unknown, path: (string | number)[]): boolean {
+  if (!same(getAt(current, path), getAt(after, path))) return false;
+  for (let i = 0; i < path.length; i++) {
+    if (typeof path[i] !== "number") continue;
+    const listNow = getAt(current, path.slice(0, i));
+    const listThen = getAt(after, path.slice(0, i));
+    if (!Array.isArray(listNow) || !Array.isArray(listThen) || listNow.length !== listThen.length) return false;
+    const now = listNow[path[i] as number] as Record<string, unknown> | undefined;
+    const then = listThen[path[i] as number] as Record<string, unknown> | undefined;
+    if (now && then && typeof now === "object" && typeof then === "object" && "id" in then) {
+      if (now.id !== then.id) return false;
+    } else if (now && then && typeof now === "object" && typeof then === "object" && path[i + 1] !== undefined) {
+      const { [path[i + 1] as string]: _n, ...restNow } = now;
+      const { [path[i + 1] as string]: _t, ...restThen } = then;
+      if (!same(restNow, restThen)) return false;
+    }
+  }
+  return true;
+}
+
 /**
  * Undoes one save and nothing else: each field that save changed gets back the value it had just before it.
  * Later changes to other fields stay. Saved as a new version, so it can be undone too.
@@ -179,11 +213,14 @@ export async function undoChange(id: string): Promise<ActionResult> {
     const paths = changedPaths(before, after, 500).filter((p) => user.role === "owner" || p[0] !== "settings");
     if (!paths.length) return fail("That save didn't change anything you can undo.");
 
+    // Only undo when everything this save changed is still exactly as it left it. If a later save edited the same
+    // fields, or moved, added or removed items in the same list, writing the old values back by position could land
+    // on the wrong item or wipe that later work.
     const current = await readContent();
+    const laterChanged = "This change can't be undone on its own, because the same part was changed again later. Use “Go back to this version” on an earlier save instead.";
+    if (!paths.every((p) => untouchedSince(current, after, p))) return fail(laterChanged);
     const next = paths.reduce((c, p) => setAt(c, p, getAt(before, p)), current);
-    if (!siteContentSchema.safeParse(next).success) {
-      return fail("This change can't be undone on its own, because the same part was changed again later. Use “Go back to this version” on an earlier save instead.");
-    }
+    if (!siteContentSchema.safeParse(next).success) return fail(laterChanged);
     await saveContent(next, { by: { email: user.email, name: user.name }, section: "restore", note: `Undid the change saved at ${when(pair.entry.savedAt)}` });
     updateTag(CONTENT_TAG);
     return { ok: true, message: `Undone. Those fields are back to how they were before ${when(pair.entry.savedAt)}.` };

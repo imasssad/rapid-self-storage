@@ -1,12 +1,15 @@
 import type { ContactInfo, SiteContent } from "@/lib/content-schema";
 import { gateHoursText, phoneHref } from "@/lib/format";
+import { externalLinkProps } from "@/lib/links";
 import { menuHref } from "@/lib/nav";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
 import { MobileMenu } from "./MobileMenu";
 import { SiteButton } from "./SiteButton";
 
-export function Header({ contact, navbar }: { contact: ContactInfo; navbar: SiteContent["navbar"] }) {
+type Props = { contact: ContactInfo; navbar: SiteContent["navbar"]; locations: SiteContent["locations"]["items"] };
+
+export function Header({ contact, navbar, locations }: Props) {
   return (
     <>
       <div className="utility">
@@ -34,7 +37,7 @@ export function Header({ contact, navbar }: { contact: ContactInfo; navbar: Site
           </a>
           <nav className="nav" aria-label="Main">
             {navbar.links.map((item, i) => (
-              <a key={i} href={menuHref(item)}>
+              <a key={i} href={menuHref(item)} {...externalLinkProps(menuHref(item))}>
                 {item.label}
               </a>
             ))}
@@ -45,7 +48,7 @@ export function Header({ contact, navbar }: { contact: ContactInfo; navbar: Site
             <MobileMenu
               links={navbar.links}
               payUrl={contact.payUrl}
-              sisterLoginUrl={contact.sisterLoginUrl}
+              locations={locations}
               phone={contact.phone}
               phoneHref={phoneHref(contact.phone)}
             />

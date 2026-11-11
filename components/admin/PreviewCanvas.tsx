@@ -48,7 +48,7 @@ const parts: Part[] = [
       return specialsActive(c.specials, now) ? null : "The special offer bar isn't showing right now.";
     },
   },
-  { id: "header", screen: "navbar", render: ({ c }) => <Header contact={c.contact} navbar={c.navbar} /> },
+  { id: "header", screen: "navbar", render: ({ c }) => <Header contact={c.contact} navbar={c.navbar} locations={c.locations.items} /> },
   {
     id: "hero",
     screen: "hero",
@@ -86,7 +86,7 @@ const parts: Part[] = [
     render: ({ c }) => <Contact section={c.home.contact} contact={c.contact} locations={c.locations.items} />,
   },
   { id: "cta", screen: "cta", render: ({ c }) => <CtaBand cta={c.home.cta} contact={c.contact} photo={c.photos.facility} /> },
-  { id: "footer", screen: "contact", render: ({ c, now }) => <Footer contact={c.contact} navbar={c.navbar} year={new Date(now).getFullYear()} /> },
+  { id: "footer", screen: "contact", render: ({ c, now }) => <Footer contact={c.contact} navbar={c.navbar} locations={c.locations.items} year={new Date(now).getFullYear()} /> },
   // Only on phones, fixed to the bottom of the screen; the preview draws it in place.
   {
     id: "mobilebar",

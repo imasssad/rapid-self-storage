@@ -53,7 +53,7 @@ export const screens: Record<ScreenKey, Screen> = {
     blurb: "The bar at the top of every page: your logo and name, the menu links, the two buttons and the Pay / Reserve links.",
     scopes: [["navbar"], ["contact", "payUrl"], ["contact", "reserveUrl"]],
     anchor: "top",
-    keywords: ["menu", "navbar", "nav bar", "navigation", "header", "logo", "name", "business name", "links", "menu links", "pay", "payment", "pay link", "payment link", "reserve link", "buttons", "top bar", "bill", "storedge", "quikstor"],
+    keywords: ["menu", "navbar", "nav bar", "navigation", "header", "logo", "name", "business name", "links", "menu links", "pay", "payment", "pay link", "payment link", "reserve link", "buttons", "top bar", "bill", "storedge", "move-in", "rent online"],
     note: "The address, gate hours and phone in the thin dark strip above the menu come from Hours, phone, address & links.",
   },
   hero: {
@@ -162,7 +162,7 @@ export const screens: Record<ScreenKey, Screen> = {
     blurb: "Gate and office hours, phone, address and the Pay / Reserve button links. These appear all over the site, including “Contact” in the menu.",
     scopes: [["contact"], ["home", "contact"], ["home", "mobileBar"]],
     anchor: "visit",
-    keywords: ["hours", "open", "gate", "office", "phone", "number", "call", "address", "map", "directions", "instagram", "pay", "bill", "reserve", "link", "storedge", "quikstor", "contact"],
+    keywords: ["hours", "open", "gate", "office", "phone", "number", "call", "address", "map", "directions", "instagram", "pay", "bill", "reserve", "link", "storedge", "move-in", "rent online", "contact"],
   },
   photos: {
     title: "All photos",

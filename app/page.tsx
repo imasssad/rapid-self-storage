@@ -87,7 +87,7 @@ export default async function Home() {
         Skip to content
       </a>
       <SpecialsBar specials={c.specials} now={now} reserveUrl={c.contact.reserveUrl} />
-      <Header contact={c.contact} navbar={c.navbar} />
+      <Header contact={c.contact} navbar={c.navbar} locations={c.locations.items} />
       <main id="top">
         <Hero hero={home.hero} highlights={home.highlights} contact={c.contact} photo={photos.hero} />
         <Highlights why={home.why} highlights={home.highlights} />
@@ -103,7 +103,7 @@ export default async function Home() {
         <Contact section={home.contact} contact={c.contact} locations={c.locations.items} />
         <CtaBand cta={home.cta} contact={c.contact} photo={photos.facility} />
       </main>
-      <Footer contact={c.contact} navbar={c.navbar} year={new Date(now).getFullYear()} />
+      <Footer contact={c.contact} navbar={c.navbar} locations={c.locations.items} year={new Date(now).getFullYear()} />
       <MobileCta bar={home.mobileBar} contact={c.contact} />
       <EditBar />
       {/* Inside the page (not the root layout) so its effects run only after this page has hydrated. */}

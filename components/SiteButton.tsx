@@ -1,5 +1,6 @@
 import type { ContactInfo, SiteButton as Button } from "@/lib/content-schema";
 import { phoneHref } from "@/lib/format";
+import { externalLinkProps } from "@/lib/links";
 import { Icon } from "./Icon";
 
 /** Where a button goes: the shared Reserve / Pay links, phone and map from the contact details, or its own address. */
@@ -34,9 +35,9 @@ type Props = {
 
 /** A button whose words and destination are edited in the admin panel. */
 export function SiteButton({ button: b, contact, className, arrow = false, withNumber = false }: Props) {
-  const newTab = b.to === "directions" ? { target: "_blank", rel: "noopener noreferrer" } : {};
+  const href = buttonHref(b, contact);
   return (
-    <a className={className} href={buttonHref(b, contact)} {...newTab}>
+    <a className={className} href={href} {...externalLinkProps(href)}>
       {b.to === "call" && <Icon name="phone" className="icon-sm" />}
       {b.to === "directions" && <Icon name="map" className="icon-sm" />}
       {b.label}

@@ -69,6 +69,21 @@ export async function getSiteContent(): Promise<SiteContent> {
   return readContent();
 }
 
+/** The content exactly as stored (not filled in from defaults), or null when nothing has been saved yet. */
+export async function readStoredContent(): Promise<unknown> {
+  return readJSON(CONTENT_PATH);
+}
+
+/**
+ * Adds a version to history without changing the live content, for example a snapshot taken before a scripted
+ * update, so the admin panel's history can put it back.
+ */
+export async function recordVersion(content: unknown, meta: { by: Editor; note: string }): Promise<void> {
+  const savedAt = new Date().toISOString();
+  const entry = { savedAt, savedBy: meta.by, section: "restore" as const, note: meta.note, content };
+  await writeJSON(`${HISTORY_PREFIX}${savedAt.replace(/[:.]/g, "-")}.json`, entry);
+}
+
 /** Validates and saves the whole content, records a version, prunes old versions and unused photos. */
 export async function saveContent(next: SiteContent, meta: { by: Editor; section: HistoryEntry["section"]; note?: string }) {
   const content = siteContentSchema.parse(next);

@@ -12,7 +12,7 @@ One page for anyone taking over the Rapid Self Storage website.
 | Photos | The same Blob store, under `media/`. |
 | Admin users | The same Blob store, `auth/users.json` (bcrypt hashes only). |
 | Contact form email | Resend (`RESEND_API_KEY`), sending as `CONTACT_FROM_EMAIL`. |
-| Payments and reservations | Not part of this site: Storedge (pay) and Quikstor (reserve). The site only links to them. |
+| Payments and reservations | Not part of this site: the Storedge rental center (pay, log in, move in). The site only links to it. |
 | Domain and DNS | `rapidselfstorage.com` at the registrar; points at Vercel once the switch from the old WordPress site is approved. |
 
 The README covers architecture, local development and how to add an editable field. ADMIN-GUIDE.md is the owner's guide.
@@ -25,7 +25,7 @@ These should be in the business's name, with the owner as admin, not in a develo
 - **Vercel:** the team that owns the project (hosting, the Blob store, environment variables, domains).
 - **Domain registrar:** `rapidselfstorage.com`.
 - **Resend:** the contact form email account and its verified domain.
-- **Storedge and Quikstor:** already the business's own.
+- **Storedge:** already the business's own.
 
 Developers are invited to these accounts; they don't own them.
 

@@ -4,9 +4,16 @@
 // No made-up facts: prices, office hours and reviews are left empty until the owner fills them in.
 import type { SiteContent } from "./content-schema";
 
-const payUrl =
-  "https://rental-center.storedge.com/?companyId=ee6dd943-e3a5-49c9-af42-8bc54fe490cc&facilityId=f09f5cd3-ddb3-448e-89a4-961373ade47f#/login";
-const sisterLoginUrl = "https://ecom.quikstor.com/midvalleystorage/Account/Login";
+// Storedge rental center pages, exactly as confirmed by the client. Each is written once here; every button and
+// link on the site reads the field it's stored in (contact.payUrl, contact.reserveUrl, a location's buttonUrl).
+const rapidMoveInUrl =
+  "https://rental-center.storedge.com?companyId=ee6dd943-e3a5-49c9-af42-8bc54fe490cc&facilityId=f09f5cd3-ddb3-448e-89a4-961373ade47f#/move-in";
+const rapidLoginUrl =
+  "https://rental-center.storedge.com?companyId=ee6dd943-e3a5-49c9-af42-8bc54fe490cc&facilityId=f09f5cd3-ddb3-448e-89a4-961373ade47f#/login";
+const nobleLoginUrl =
+  "https://rental-center.storedge.com?companyId=ee6dd943-e3a5-49c9-af42-8bc54fe490cc&facilityId=e398d43a-ce49-4691-b9af-8157e3883811#/login";
+const santaFeLoginUrl =
+  "https://rental-center.storedge.com?companyId=ee6dd943-e3a5-49c9-af42-8bc54fe490cc&facilityId=165a4ac4-3327-4405-9927-412c59c08e0e#/login";
 
 const closedDay = { open: false, opens: "09:00", closes: "17:00" };
 
@@ -70,9 +77,8 @@ export const defaultContent: SiteContent = {
     gateCloses: "20:00",
     // Monday first. Office hours aren't published anywhere yet, so every day starts closed (hidden on the site).
     officeHours: [closedDay, closedDay, closedDay, closedDay, closedDay, closedDay, closedDay],
-    payUrl,
-    reserveUrl: "https://ecom.quikstor.com/rapid_self_storage/Account/Login",
-    sisterLoginUrl,
+    payUrl: rapidLoginUrl,
+    reserveUrl: rapidMoveInUrl,
     instagramUrl: "https://www.instagram.com/rapidselfstorage",
     instagramHandle: "@rapidselfstorage",
   },
@@ -314,7 +320,7 @@ export const defaultContent: SiteContent = {
         where: "1682 N J St, Tulare",
         description: "Drive-up units off J Street, close to Highway 99.",
         buttonLabel: "Pay your bill",
-        buttonUrl: payUrl,
+        buttonUrl: rapidLoginUrl,
         highlight: true,
       },
       {
@@ -322,7 +328,7 @@ export const defaultContent: SiteContent = {
         where: "Mid Valley Storage",
         description: "Our sister location in Visalia.",
         buttonLabel: "Log in or reserve",
-        buttonUrl: sisterLoginUrl,
+        buttonUrl: nobleLoginUrl,
         highlight: false,
       },
       {
@@ -330,7 +336,7 @@ export const defaultContent: SiteContent = {
         where: "Santa Fe Rd and K Rd, Visalia",
         description: "Indoor RV storage and conventional units.",
         buttonLabel: "Log in or reserve",
-        buttonUrl: sisterLoginUrl,
+        buttonUrl: santaFeLoginUrl,
         highlight: false,
       },
     ],

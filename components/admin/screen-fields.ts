@@ -152,7 +152,7 @@ export const screenBlocks: Record<ScreenKey, Block[]> = {
       help: "Every button set to “Your Pay page” or “Your Reserve page” goes to these, all over the site (the same links as on Hours, phone, address & links).",
       fields: [
         link("payUrl", "Pay / customer login link", "Your Storedge customer login page."),
-        link("reserveUrl", "Reserve link", "Your Quikstor reservation page."),
+        link("reserveUrl", "Reserve link", "Your Storedge move-in page, where people rent a unit online."),
       ],
     },
   ],
@@ -495,7 +495,7 @@ export const screenBlocks: Record<ScreenKey, Block[]> = {
             { kind: "text", key: "where", label: "Address line", max: 80 },
             { kind: "text", key: "description", label: "Description", max: 200 },
             { kind: "text", key: "buttonLabel", label: "Button label", max: 40 },
-            link("buttonUrl", "Button link"),
+            link("buttonUrl", "Button link", "Opens in a new tab. For the other locations, this link also shows in the footer and the phone menu as “<name> login”."),
             { kind: "toggle", key: "highlight", label: "This card is this facility", help: "Shows the card in dark blue with “You are here”. Switch it on for one card only." },
           ],
         },
@@ -623,8 +623,7 @@ export const screenBlocks: Record<ScreenKey, Block[]> = {
       help: "Every “Pay your bill”, “Customer login & pay” and “Reserve a unit” button on the site goes to these links.",
       fields: [
         link("payUrl", "“Pay your bill” link", "Your Storedge customer login page. Used by “Pay bill” at the top, “Customer login & pay”, the footer and the phone menu."),
-        link("reserveUrl", "“Reserve a unit” link", "Your Quikstor reservation page. Used by every Reserve button: top of the page, the size picker, How it works, the bottom banner, the footer and the phone's call bar."),
-        link("sisterLoginUrl", "Visalia locations login link (optional)"),
+        link("reserveUrl", "“Reserve a unit” link", "Your Storedge move-in page, where people rent a unit online. Used by every Reserve button: top of the page, the size picker, How it works, the bottom banner, the footer and the phone's call bar."),
         link("instagramUrl", "Instagram page (optional)"),
         { kind: "text", key: "instagramHandle", label: "Instagram name", max: 40, help: "For example: @rapidselfstorage" },
       ],

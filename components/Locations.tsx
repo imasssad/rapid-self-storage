@@ -1,4 +1,5 @@
 import type { SiteContent } from "@/lib/content-schema";
+import { externalLinkProps } from "@/lib/links";
 import { Icon } from "./Icon";
 
 export function Locations({ locations }: { locations: SiteContent["locations"] }) {
@@ -26,7 +27,7 @@ export function Locations({ locations }: { locations: SiteContent["locations"] }
               <h3>{l.name}</h3>
               <p className="where">{l.where}</p>
               <p className="what">{l.description}</p>
-              <a className={l.highlight ? "btn btn-light" : "btn btn-outline"} href={l.buttonUrl}>
+              <a className={l.highlight ? "btn btn-light" : "btn btn-outline"} href={l.buttonUrl} {...externalLinkProps(l.buttonUrl)}>
                 {l.buttonLabel}
                 <Icon name="arrow" className="icon-arrow" />
               </a>
